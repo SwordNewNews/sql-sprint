@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbfaf7">
+<title>SQL 手机课堂</title>
+<style>
+  :root{--bg:#fbfaf7;--fg:#1b1d22;--muted:#6d7280;--line:#e7e3da;--card:#fff;--accent:#2f6feb;--soft:#eef3ff;--teacher:#0f766e;--tsoft:#e9f6f3;--warn:#b4530a;--wsoft:#fff5e9;--code:#f4f3ef;--gold:#a16207}
+  @media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#e9eaee;--muted:#9aa0ac;--line:#2b2f37;--card:#1b1e24;--accent:#7aa2ff;--soft:#1b2436;--teacher:#5eead4;--tsoft:#16241f;--warn:#e2a878;--wsoft:#2a2119;--code:#20242b;--gold:#ffd166}}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.78 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  .wrap{max-width:680px;margin:0 auto;padding:14px 15px 10px}
+  header{position:sticky;top:0;z-index:9;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 15px 8px;margin:0 -15px 12px}
+  h1{font-size:20px;margin:0 0 2px;line-height:1.35}
+  .sub{font-size:13px;color:var(--muted);margin:0}
+  .chips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips a{flex:0 0 auto;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;color:var(--muted);text-decoration:none}
+  details{background:var(--card);border:1px solid var(--line);border-radius:13px;margin:10px 0;overflow:hidden}
+  details[open]{border-color:#c9d6f5}
+  summary{padding:14px 15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;font-weight:650;font-size:16.5px}
+  summary::-webkit-details-marker{display:none}
+  summary .n{flex:0 0 26px;height:26px;border-radius:8px;background:var(--soft);color:var(--accent);display:grid;place-items:center;font-size:13px;font-weight:700}
+  summary .h{margin-left:auto;font-size:12px;color:var(--gold);font-weight:600;white-space:nowrap}
+  .body{padding:0 15px 15px}
+  .blk{border-radius:10px;padding:11px 13px;margin:10px 0;font-size:15.5px}
+  .blk b{display:block;font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:3px}
+  .scene{background:var(--soft)}
+  .how{background:var(--tsoft);border-left:3px solid var(--teacher);border-radius:0 10px 10px 0}
+  .use{background:var(--soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
+  .mem{background:var(--wsoft);border-left:3px solid var(--gold);border-radius:0 10px 10px 0}
+  .warn{background:#fdeeee;border-left:3px solid #d9534f;border-radius:0 10px 10px 0;font-size:14.5px}
+  @media (prefers-color-scheme:dark){.warn{background:#2b1a1a}}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:9px;padding:11px 12px;overflow-x:auto;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.7;margin:8px 0}
+  pre code{background:none;padding:0}
+  .kw{color:#b4530a;font-weight:600}
+  @media (prefers-color-scheme:dark){.kw{color:#ffb87a}}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:var(--code)}
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(251,250,247,.92);border-top:1px solid var(--line);backdrop-filter:blur(12px)}
+  @media (prefers-color-scheme:dark){.bar{background:rgba(20,22,26,.92)}}
+  .bar a,.bar button{flex:1;text-align:center;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:15px;font-weight:600;text-decoration:none;cursor:pointer}
+  .bar button.ask{background:linear-gradient(135deg,#2f6feb,#4570e6);border-color:transparent;color:#fff}
+  /* 请求面板 */
+  .mask{position:fixed;inset:0;background:rgba(10,12,16,.5);z-index:40;display:none}
+  .mask.on{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--card);border-radius:18px 18px 0 0;padding:16px 15px calc(16px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .26s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow:auto}
+  .sheet.on{transform:none}
+  .sheet h3{margin:0 0 4px;font-size:17px}
+  .sheet p.hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+  .qchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .qchips button{font-size:14px;padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+  .qchips button.on{background:var(--soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+  textarea{width:100%;min-height:88px;font:inherit;font-size:16px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);resize:vertical}
+  .sendrow{display:flex;gap:10px;margin-top:12px}
+  .sendrow button{flex:1;padding:14px;border-radius:12px;font-size:15.5px;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+  .sendrow button.go{background:linear-gradient(135deg,#2f6feb,#4570e6);border-color:transparent;color:#fff}
+  .toast{position:fixed;left:50%;bottom:104px;transform:translate(-50%,10px);background:#1b2436;color:#e6edff;padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88vw;text-align:center}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* --- 移动端基础修补（自动注入） --- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  a,button,input,select,textarea,summary,[role="button"]{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SQL 手机课堂</h1>
+  <p class="sub">一屏一课，点开就是那一课。8 节，每节 2 分钟。</p>
+  <div class="chips">
+    <a href="#c1">1 单表</a><a href="#c2">2 JOIN</a><a href="#c3">3 LEFT</a><a href="#c4">4 分组</a>
+    <a href="#c5">5 取第一</a><a href="#c6">6 关联更新</a><a href="#c7">7 事务</a><a href="#c8">8 套打</a><a href="#card">信号词卡</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+<details id="c1" open>
+  <summary><span class="n">1</span>单表查询<span class="h">选表筛排</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>「把 11 月金额超过 2000 的订单列出来，从大到小。」</div>
+    <div class="blk how"><b>老师带你写</b>
+<pre><code><span class="kw">SELECT</span> OrderNo, Amount, OrderDate   <span style="color:#8b95a6">← 要哪几列</span>
+<span class="kw">FROM</span> Orders                          <span style="color:#8b95a6">← 哪张表</span>
+<span class="kw">WHERE</span> Amount &gt; 2000
+  <span class="kw">AND</span> OrderDate &gt;= '2026-11-01'
+  <span class="kw">AND</span> OrderDate &lt; '2026-12-01'       <span style="color:#8b95a6">← 筛行</span>
+<span class="kw">ORDER BY</span> Amount <span class="kw">DESC</span>;              <span style="color:#8b95a6">← 倒序</span></code></pre>
+      就是在 Excel 里点筛选箭头、输条件、点排序——SQL 把鼠标动作写成一句话。</div>
+    <div class="blk use"><b>什么时候用</b>题目只涉及<strong>一张表</strong>，动词是「查询/列出/显示/找出」。</div>
+    <div class="blk mem"><b>怎么记</b>「选表筛排」：挑列→挑表→筛行→排序。像点外卖：要哪几样、哪家店、哪些不要、按价格排。</div>
+    <div class="blk warn"><b>老师提醒</b>日期写 <code>&gt;= 月初 AND &lt; 下月初</code>，别用 <code>BETWEEN 1号 AND 30号</code>（会漏掉 30 号下午）。</div>
+  </div>
+</details>
+
+<details id="c2">
+  <summary><span class="n">2</span>JOIN 连表<span class="h">连表靠 ON</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>「订单号 + <strong>客户名字</strong>列出来。」但订单表只有 CustomerId，没名字。</div>
+    <div class="blk how"><b>为什么分开存</b>名字只存一份，改名只改一处。这就是「关系」。<b style="margin-top:8px">老师带你写</b>
+<pre><code><span class="kw">SELECT</span> o.OrderNo, c.CustomerName, o.Amount
+<span class="kw">FROM</span> Orders o
+<span class="kw">JOIN</span> Customer c
+  <span class="kw">ON</span> c.Id = o.CustomerId;   <span style="color:#8b95a6">← 按编号对齐</span></code></pre>
+      读法：「客户的 Id 等于订单里的 CustomerId」。</div>
+    <div class="blk use"><b>什么时候用</b>要显示的字段<strong>分散在两张表</strong>。</div>
+    <div class="blk mem"><b>怎么记</b>「连表靠 ON」。像查字典：订单上写「客户 1 号」，去客户表翻到 1 号，把名字抄过来。</div>
+    <div class="blk warn"><b>老师提醒</b>两表都有 Id，<strong>必须起别名</strong>，字段前带前缀。</div>
+  </div>
+</details>
+
+<details id="c3">
+  <summary><span class="n">3</span>LEFT JOIN<span class="h">左连数 0</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>「每个客户下了几单？<strong>没下过单的也要显示 0。</strong>」</div>
+    <div class="blk how"><b>难点</b>普通 JOIN 只有下过单的能匹配上，没下单的被扔掉——正好是老板要的那部分人。就像点名只点交作业的，缺交的反而消失。<b style="margin-top:8px">老师带你写</b>
+<pre><code><span class="kw">SELECT</span> c.CustomerName, <span class="kw">COUNT</span>(o.Id) <span class="kw">AS</span> 订单数
+<span class="kw">FROM</span> Customer c
+<span class="kw">LEFT JOIN</span> Orders o <span class="kw">ON</span> o.CustomerId = c.Id
+<span class="kw">GROUP BY</span> c.CustomerName;</code></pre>
+      为什么 <code>COUNT(o.Id)</code> 不是 <code>COUNT(*)</code>：没下单的客户右表是空行，<code>COUNT(*)</code> 会数成 1。</div>
+    <div class="blk use"><b>什么时候用</b>出现「所有」「每个…都」「没有…的」「含无明细的」——闭眼 LEFT JOIN。</div>
+    <div class="blk mem"><b>怎么记</b>「左连数 0」。<strong>点名册</strong>：全班名单在左边，没交作业的名字还在，后面写 0。</div>
+    <div class="blk warn"><b>老师提醒</b>方向别反：<strong>谁必须全部出现，谁放左边。</strong></div>
+  </div>
+</details>
+
+<details id="c4">
+  <summary><span class="n">4</span>GROUP BY<span class="h">分组 HAVING</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>「每个客户<strong>总共</strong>花多少？超过 1 万的才要。」</div>
+    <div class="blk how"><b>老师带你写</b>把每张小票按客户装进不同信封，再算每个信封的总额：
+<pre><code><span class="kw">SELECT</span> c.CustomerName, <span class="kw">SUM</span>(o.Amount) <span class="kw">AS</span> 总金额
+<span class="kw">FROM</span> Orders o
+<span class="kw">JOIN</span> Customer c <span class="kw">ON</span> c.Id = o.CustomerId
+<span class="kw">WHERE</span> o.OrderDate &gt;= '2026-01-01'   <span style="color:#8b95a6">← 筛小票</span>
+<span class="kw">GROUP BY</span> c.CustomerName               <span style="color:#8b95a6">← 装信封</span>
+<span class="kw">HAVING</span> <span class="kw">SUM</span>(o.Amount) &gt; 10000      <span style="color:#8b95a6">← 筛信封</span>
+<span class="kw">ORDER BY</span> <span class="kw">SUM</span>(o.Amount) <span class="kw">DESC</span>;</code></pre></div>
+    <div class="blk use"><b>什么时候用</b>出现「总共/合计/几单/平均/最多」这类要算数的词。</div>
+    <div class="blk mem"><b>怎么记</b>「分组 HAVING」：<strong>WHERE 筛票，HAVING 筛信封。</strong></div>
+    <div class="blk warn"><b>老师提醒</b><code>SELECT</code> 里的列没被聚合、又不在 <code>GROUP BY</code>，报错。写完逐列问自己一遍。</div>
+  </div>
+</details>
+
+<details id="c5">
+  <summary><span class="n">5</span>每组取第一<span class="h">编号取 1</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>「每个客户<strong>金额最高的那一单</strong>是哪个？」</div>
+    <div class="blk how"><b>难点</b>不是全校第一，是每个班第一。先分班排名，再举手。
+<pre><code><span class="kw">SELECT</span> * <span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> o.*, <span class="kw">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+      <span class="kw">PARTITION BY</span> o.CustomerId   <span style="color:#8b95a6">← 分班</span>
+      <span class="kw">ORDER BY</span> o.Amount <span class="kw">DESC</span>      <span style="color:#8b95a6">← 班内排名</span>
+  ) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> Orders o
+) t
+<span class="kw">WHERE</span> t.rn = 1;                   <span style="color:#8b95a6">← 举手</span></code></pre></div>
+    <div class="blk use"><b>什么时候用</b>「每个…最高/最新/最好/第一」——「每个」+「最」同时出现。</div>
+    <div class="blk mem"><b>怎么记</b>「编号取 1」。运动会：分年级排名次，每个年级只叫第一名上台。</div>
+    <div class="blk warn"><b>老师提醒</b>记不住这串就写子查询版「金额 = 该客户最大金额」，也能拿大部分分，别空着。</div>
+  </div>
+</details>
+
+<details id="c6">
+  <summary><span class="n">6</span>关联更新<span class="h">UPDATE 别名</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>涨价了，「把未审核订单的金额，按产品表最新单价重算」。</div>
+    <div class="blk how"><b>老师带你写</b>别名写在 UPDATE 后面，表在 FROM 里连——SQL Server 招牌写法：
+<pre><code><span class="kw">UPDATE</span> o                          <span style="color:#8b95a6">← 改哪张表</span>
+<span class="kw">SET</span> o.Amount = o.Qty * p.Price   <span style="color:#8b95a6">← 改成什么</span>
+<span class="kw">FROM</span> Orders o
+<span class="kw">JOIN</span> Product p <span class="kw">ON</span> p.Id = o.ProductId
+<span class="kw">WHERE</span> o.Status = 0;              <span style="color:#8b95a6">← 只改哪些行</span></code></pre></div>
+    <div class="blk use"><b>什么时候用</b>「按…重算/根据…更新/批量修改」，数据来源在另一张表。单表改数不用 FROM。</div>
+    <div class="blk mem"><b>怎么记</b>「UPDATE 别名」。照价目表改小票：拿价目表一张张对，金额划掉重写。</div>
+    <div class="blk warn"><b>老师提醒</b>删除同一个套路：<code>DELETE o FROM Orders o JOIN … WHERE …</code>，形状一样，只差第一个词。</div>
+  </div>
+</details>
+
+<details id="c7">
+  <summary><span class="n">7</span>事务<span class="h">BEGIN COMMIT</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>把 A 账户的 100 元转给 B。</div>
+    <div class="blk how"><b>难点</b>A 扣完、程序崩了、B 没加上——钱凭空消失。两步必须捆成一件事。
+<pre><code><span class="kw">BEGIN TRAN</span>;
+<span class="kw">UPDATE</span> Account <span class="kw">SET</span> Balance = Balance - 100 <span class="kw">WHERE</span> Id = 1;
+<span class="kw">UPDATE</span> Account <span class="kw">SET</span> Balance = Balance + 100 <span class="kw">WHERE</span> Id = 2;
+<span class="kw">COMMIT TRAN</span>;
+<span style="color:#8b95a6">-- 出错：ROLLBACK TRAN;</span></code></pre></div>
+    <div class="blk use"><b>什么时候用</b>「转账/保证同时成功/要么都成功要么回滚」。</div>
+    <div class="blk mem"><b>怎么记</b>「BEGIN COMMIT」：开、成、撤。<strong>连体单据</strong>，撕不开，要么一起生效要么一起作废。</div>
+    <div class="blk warn"><b>老师提醒</b>三个关键字写出来就是分，概念分最好拿。</div>
+  </div>
+</details>
+
+<details id="c8">
+  <summary><span class="n">8</span>套打取明细<span class="h">套打左连明细</span></summary>
+  <div class="body">
+    <div class="blk scene"><b>场景</b>打一张出库单：上面单号日期客户，下面列所有商品。</div>
+    <div class="blk how"><b>难点</b>表头 1 行、明细 N 行，两张表一次取全。
+<pre><code><span class="kw">SELECT</span> m.BillNo, m.BillDate, d.LineNo, d.ProductName, d.Qty
+<span class="kw">FROM</span> BillMaster m
+<span class="kw">LEFT JOIN</span> BillDetail d <span class="kw">ON</span> d.BillId = m.Id
+<span class="kw">WHERE</span> m.BillNo = 'CK20261126001'
+<span class="kw">ORDER BY</span> d.LineNo;</code></pre></div>
+    <div class="blk use"><b>什么时候用</b>「单据/打印/表头+明细/出库单/发票」。</div>
+    <div class="blk mem"><b>怎么记</b>「套打左连明细」。一张表单：上面填一遍，下面能填很多行。</div>
+    <div class="blk warn"><b>老师提醒</b><strong>必须 LEFT JOIN</strong>——没有明细的单据也要打印，用 INNER 会整张弄丢。</div>
+  </div>
+</details>
+
+<details id="card">
+  <summary><span class="n">★</span>信号词速查卡<span class="h">考场上用</span></summary>
+  <div class="body">
+    <table>
+      <tr><th>题目里出现</th><th>用哪个</th></tr>
+      <tr><td>查询/列出（一张表）</td><td>单表查询</td></tr>
+      <tr><td>要显示另一张表的字段</td><td>JOIN</td></tr>
+      <tr><td>所有 / 没有…的 / 含无明细</td><td>LEFT JOIN</td></tr>
+      <tr><td>总共/合计/几单</td><td>GROUP BY</td></tr>
+      <tr><td>合计超过 X</td><td>HAVING</td></tr>
+      <tr><td>每个…最高/最新</td><td>ROW_NUMBER</td></tr>
+      <tr><td>按…重算/批量修改</td><td>关联更新</td></tr>
+      <tr><td>转账/同时成功</td><td>事务</td></tr>
+      <tr><td>单据/打印/表头+明细</td><td>套打</td></tr>
+    </table>
+    <div class="blk mem"><b>拿到卷子第一件事</b>圈出信号词 → 判断句型 → 再落笔。10 秒，省一半犹豫。</div>
+  </div>
+</details>
+
+<p style="font-size:13.5px;color:var(--muted);margin:18px 0 6px">
+  配套：<a href="drill.html">默写训练</a> · <a href="paper.html">可打印试卷</a> · <a href="study.html">速查表</a> · <a href="class.html">完整版讲义</a>
+</p>
+
+</div>
+
+<div class="bar">
+  <a href="#c1">📖 从头看</a>
+  <button class="ask" id="askBtn">🙋 提要求</button>
+</div>
+
+<div class="mask" id="mask"></div>
+<div class="sheet" id="sheet">
+  <h3>告诉老师哪里要改</h3>
+  <p class="hint">选一个，或直接写。提交后会进我的待办，我下次回话时先看它。</p>
+  <div class="qchips" id="chips">
+    <button data-t="这一课没看懂，换个说法">这段没看懂</button>
+    <button data-t="举一个 ERP 里的真实例子">举个例子</button>
+    <button data-t="再简单一点，少用术语">再简单点</button>
+    <button data-t="给我 3 道这一课的小练习">要练习</button>
+    <button data-t="把这一课改成表格对比">改成表格</button>
+    <button data-t="我需要这一课的口诀，越短越好">要口诀</button>
+  </div>
+  <textarea id="reqText" placeholder="比如：第 4 课 HAVING 还是不明白，能不能用老板要数据的故事再讲一遍"></textarea>
+  <div class="sendrow">
+    <button id="cancelBtn">取消</button>
+    <button class="go" id="sendBtn">提交 + 复制</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+(function () {
+  var mask = document.getElementById("mask");
+  var sheet = document.getElementById("sheet");
+  var text = document.getElementById("reqText");
+  var toastEl = document.getElementById("toast");
+  var picked = "";
+
+  function open() { mask.classList.add("on"); sheet.classList.add("on"); }
+  function close() { mask.classList.remove("on"); sheet.classList.remove("on"); }
+
+  document.getElementById("askBtn").onclick = open;
+  mask.onclick = close;
+  document.getElementById("cancelBtn").onclick = close;
+
+  Array.prototype.forEach.call(document.querySelectorAll("#chips button"), function (b) {
+    b.onclick = function () {
+      picked = b.dataset.t;
+      Array.prototype.forEach.call(document.querySelectorAll("#chips button"), function (x) {
+        x.classList.toggle("on", x === b);
+      });
+      text.value = picked;
+    };
+  });
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("on");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toastEl.classList.remove("on"); }, 2600);
+  }
+
+  document.getElementById("sendBtn").onclick = function () {
+    var val = (text.value || "").trim();
+    if (!val) { toast("先写一句要改什么"); return; }
+    var payload = JSON.stringify({ page: location.pathname, text: val });
+
+    // 先复制到剪贴板：你切回对话粘一下就发给我
+    var copied = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(val);
+        copied = true;
+      }
+    } catch (e) {}
+
+    fetch("/request", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: payload
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res && res.ok) {
+        toast(copied ? "已记下，也复制好了；回对话粘一下发给我" : "已记下，回对话跟我说一声「改」");
+        text.value = "";
+        picked = "";
+        Array.prototype.forEach.call(document.querySelectorAll("#chips button"), function (x) { x.classList.remove("on"); });
+        setTimeout(close, 700);
+      } else {
+        toast("提交失败：" + ((res && res.error) || "未知错误"));
+      }
+    }).catch(function () {
+      toast("网络没通，直接回对话里告诉我吧");
+    });
+  };
+})();
+</script>
+</body>
+</html>
