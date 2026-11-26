@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f3ec">
+<title>表与字段手册 · 换个名字也认得出</title>
+<style>
+  :root{--paper:#f6f3ec;--card:#fffdf9;--ink:#20222a;--muted:#6f7180;--line:#e2ddd1;--line2:#cfc8b8;--indigo:#33459a;--indigo-soft:#eceffb;--rust:#b4441a;--rust-soft:#fdeee6;--green:#136b4a;--green-soft:#e7f4ee;--code:#1c2027;--codeink:#e6edf7}
+  @media (prefers-color-scheme:dark){:root{--paper:#14161a;--card:#1b1e24;--ink:#e9eaee;--muted:#9aa0ac;--line:#2b2f37;--line2:#3a404b;--indigo:#9db0ff;--indigo-soft:#1c2336;--rust:#f0a179;--rust-soft:#2a1e17;--green:#6dd3a6;--green-soft:#16241d;--code:#0e1116}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16.5px/1.78 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding-bottom:40px}
+  .wrap{max-width:780px;margin:0 auto;padding:0 16px}
+  header{padding:22px 0 14px;border-bottom:2px solid var(--ink)}
+  .kick{font-size:12px;letter-spacing:.26em;color:var(--muted)}
+  h1{font-family:Georgia,"Songti SC",serif;font-size:24px;margin:8px 0 8px;line-height:1.35}
+  .sub{color:var(--muted);font-size:14.5px;margin:0}
+  h2{font-size:18px;margin:30px 0 8px}
+  h3{font-size:15px;margin:18px 0 6px}
+  p{margin:8px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+  .roles{display:grid;gap:10px;margin:12px 0}
+  .role{border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:var(--card)}
+  .role b{display:block;font-size:15px;margin-bottom:2px}
+  .role.r1{border-left:4px solid var(--indigo)}
+  .role.r2{border-left:4px solid var(--rust)}
+  .role.r3{border-left:4px solid var(--green)}
+  .role .ex{font-size:13px;color:var(--muted);margin-top:3px;font-family:ui-monospace,Consolas,monospace}
+  .flow{background:var(--code);color:var(--codeink);border-radius:12px;padding:14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.85;overflow-x:auto;margin:12px 0}
+  .flow .k{color:#ffb27a}
+  .flow .c{color:#7b8798}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:var(--indigo-soft);color:var(--indigo);font-weight:650;font-size:12.5px;letter-spacing:.02em}
+  td code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+  .note{border-left:3px solid var(--indigo);background:var(--indigo-soft);border-radius:0 10px 10px 0;padding:11px 13px;font-size:14.5px;margin:12px 0}
+  .warn{border-left:3px solid var(--rust);background:var(--rust-soft);border-radius:0 10px 10px 0;padding:11px 13px;font-size:14.5px;margin:12px 0}
+  .ok{border-left:3px solid var(--green);background:var(--green-soft);border-radius:0 10px 10px 0;padding:11px 13px;font-size:14.5px;margin:12px 0}
+  ol.steps{padding-left:22px;margin:10px 0}
+  ol.steps li{margin:7px 0}
+  .small{font-size:13.5px;color:var(--muted)}
+  .tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);margin-right:4px}
+  .foot{font-size:13px;color:var(--muted);text-align:center;margin-top:28px}
+  .foot a{color:var(--indigo)}
+
+  /* --- 移动端基础修补（自动注入） --- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  a,button,input,select,textarea,summary,[role="button"]{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kick">SQL 笔试 · 考前必看</div>
+  <h1>表与字段手册：换个名字也认得出</h1>
+  <p class="sub">考试的表名一定和你背的不一样。别背表名，背「角色」和「语义」——任何命名都能对上。</p>
+</header>
+
+<h2>一、只有三种表角色（这是核心）</h2>
+<p>不管题目叫 <code>Orders</code>、<code>dd</code>、<code>T_Order</code> 还是 <code>销售单</code>，任何 ERP 库里的表都逃不出这三类：</p>
+
+<div class="roles">
+  <div class="role r1">
+    <b>① 业务主表（一行一笔业务）</b>
+    订单、出库单、入库单、凭证、合同——每条记录就是一次业务动作。
+    <div class="ex">Orders / SaleOrder / T_Bill / dd（订单）/ CK（出库）</div>
+  </div>
+  <div class="role r2">
+    <b>② 明细表（一行一个商品）</b>
+    一张单据有几个商品就有几行，靠「主表Id」挂在主表下面。
+    <div class="ex">OrderDetail / BillDetail / T_BillDetail / mx（明细）</div>
+  </div>
+  <div class="role r3">
+    <b>③ 字典表 / 主数据表（提供名字）</b>
+    客户、产品、员工、仓库、部门——被上面两类表引用，只提供名称和属性。
+    <div class="ex">Customer / Product / Employee / kh（客户）/ sp（商品）</div>
+  </div>
+</div>
+
+<h3>角色之间的两条关系（永远是这两条）</h3>
+<div class="flow"><span class="c">// 明细表 → 主表：靠 主表Id</span>
+<span class="k">ON</span> 明细.<span class="k">BillId</span> = 主表.<span class="k">Id</span>
+
+<span class="c">// 主表 → 字典表：靠 字典Id</span>
+<span class="k">ON</span> 客户.<span class="k">Id</span> = 主表.<span class="k">CustomerId</span></div>
+
+<div class="note"><b>记住这一句，题型全能对上：</b>题目给了什么表，先判断它是「主表 / 明细 / 字典」中的哪一类，再套对应句型——主表+明细 → 套打；主表+字典 → JOIN；只给主表 → 单表或分组。</div>
+
+<h2>二、标准示例库（我前面所有例题用的就是这套）</h2>
+<p class="small">考试如果给的表不一样，拿这张表当「翻译字典」用即可。</p>
+
+<div class="card">
+<h3 style="margin-top:0">Customer 客户表（字典表）</h3>
+<table>
+  <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td><code>Id</code></td><td>int</td><td>主键，自增</td></tr>
+  <tr><td><code>CustomerName</code></td><td>nvarchar(50)</td><td>客户名称</td></tr>
+  <tr><td><code>Phone</code></td><td>varchar(20)</td><td>电话</td></tr>
+  <tr><td><code>Status</code></td><td>int</td><td>状态：1 正常 / 9 停用</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">Orders 订单主表（业务主表）</h3>
+<table>
+  <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td><code>Id</code></td><td>int</td><td>主键</td></tr>
+  <tr><td><code>CustomerId</code></td><td>int</td><td><b>外键</b> → Customer.Id</td></tr>
+  <tr><td><code>OrderNo</code></td><td>varchar(30)</td><td>订单号（业务唯一编号）</td></tr>
+  <tr><td><code>Amount</code></td><td>decimal(18,2)</td><td>订单金额</td></tr>
+  <tr><td><code>OrderDate</code></td><td>datetime</td><td>下单时间</td></tr>
+  <tr><td><code>Status</code></td><td>int</td><td>0 未审核 / 1 已审核 / 2 完成</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">OrderDetail 订单明细（明细表）</h3>
+<table>
+  <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td><code>Id</code></td><td>int</td><td>主键</td></tr>
+  <tr><td><code>OrderId</code></td><td>int</td><td><b>外键</b> → Orders.Id</td></tr>
+  <tr><td><code>ProductId</code></td><td>int</td><td><b>外键</b> → Product.Id</td></tr>
+  <tr><td><code>Qty</code></td><td>decimal(18,2)</td><td>数量</td></tr>
+  <tr><td><code>Price</code></td><td>decimal(18,2)</td><td>成交单价</td></tr>
+  <tr><td><code>Amount</code></td><td>decimal(18,2)</td><td>小计 = Qty × Price</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">Product 产品表（字典表）</h3>
+<table>
+  <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+  <tr><td><code>Id</code></td><td>int</td><td>主键</td></tr>
+  <tr><td><code>ProductName</code></td><td>nvarchar(80)</td><td>产品名称</td></tr>
+  <tr><td><code>Category</code></td><td>nvarchar(30)</td><td>分类（如「电子」）</td></tr>
+  <tr><td><code>Price</code></td><td>decimal(18,2)</td><td>当前单价</td></tr>
+  <tr><td><code>Stock</code></td><td>decimal(18,2)</td><td>库存数量</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">BillMaster 单据主表 + BillDetail 单据明细（套打专用）</h3>
+<table>
+  <tr><th>BillMaster</th><th>BillDetail</th></tr>
+  <tr><td><code>Id</code> 主键</td><td><code>Id</code> 主键</td></tr>
+  <tr><td><code>BillNo</code> 单号</td><td><code>BillId</code> 外键 → BillMaster.Id</td></tr>
+  <tr><td><code>BillType</code> 类型（出库/入库）</td><td><code>LineNo</code> 行号（打印顺序）</td></tr>
+  <tr><td><code>BillDate</code> 单据日期</td><td><code>ProductName</code> 商品名称</td></tr>
+  <tr><td><code>CustomerName</code> 客户（冗余存的）</td><td><code>Qty</code> 数量</td></tr>
+  <tr><td><code>TotalAmount</code> 合计</td><td><code>Amount</code> 金额</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">Account 账户表（事务题用）</h3>
+<table>
+  <tr><th>字段</th><th>说明</th></tr>
+  <tr><td><code>Id</code></td><td>主键</td></tr>
+  <tr><td><code>AccountName</code></td><td>账户名</td></tr>
+  <tr><td><code>Balance</code></td><td>余额</td></tr>
+</table>
+</div>
+
+<h2>三、命名规律：三种常见风格</h2>
+<table>
+  <tr><th>风格</th><th>长什么样</th><th>你怎么认</th></tr>
+  <tr><td>英文全称</td><td><code>Orders</code> <code>Customer</code> <code>OrderDetail</code></td><td>最好认，看词就知道</td></tr>
+  <tr><td>前缀 + 英文</td><td><code>T_Order</code> <code>tbl_Customer</code> <code>B_Order</code></td><td>前缀只是「表」的意思，看后半段</td></tr>
+  <tr><td>拼音首字母</td><td><code>dd</code>（订单）<code>mx</code>（明细）<code>kh</code>（客户）<code>sp</code>（商品）</td><td>国内老系统常见：把拼音读出来</td></tr>
+</table>
+
+<div class="note"><b>考场技巧：</b>题目通常会附一段「表结构说明」。看不懂名字时，就找三样东西——① 哪个字段像<b>主键</b>（Id/Code/No）② 哪个字段像<b>外键</b>（以别的表名开头，如 CustomerId）③ 哪个字段是<b>金额/数量/时间</b>（Amount/Qty/Date）。找到这三样，90% 的题就能下笔。</div>
+
+<h2>四、字段语义对照表（题目说中文，你写哪个字段）</h2>
+<table>
+  <tr><th>题目里的说法</th><th>常见字段名</th><th>类型</th></tr>
+  <tr><td>主键 / 编号</td><td><code>Id</code> <code>Code</code> <code>No</code></td><td>键</td></tr>
+  <tr><td>单号 / 订单号</td><td><code>OrderNo</code> <code>BillNo</code> <code>DocNo</code></td><td>业务编号</td></tr>
+  <tr><td>客户编号 / 供应商编号</td><td><code>CustomerId</code> <code>ClientId</code> <code>SupplierId</code></td><td><b>外键</b></td></tr>
+  <tr><td>产品编号</td><td><code>ProductId</code> <code>GoodsId</code> <code>ItemId</code></td><td><b>外键</b></td></tr>
+  <tr><td>单据编号（明细表里的）</td><td><code>BillId</code> <code>OrderId</code> <code>MasterId</code></td><td><b>外键</b></td></tr>
+  <tr><td>行号 / 序号</td><td><code>LineNo</code> <code>Seq</code> <code>RowNo</code></td><td>排序用</td></tr>
+  <tr><td>金额 / 总金额 / 合计</td><td><code>Amount</code> <code>Total</code> <code>TotalAmount</code> <code>Money</code></td><td>数值</td></tr>
+  <tr><td>数量</td><td><code>Qty</code> <code>Quantity</code> <code>Num</code></td><td>数值</td></tr>
+  <tr><td>单价</td><td><code>Price</code> <code>UnitPrice</code></td><td>数值</td></tr>
+  <tr><td>库存</td><td><code>Stock</code> <code>Qty</code> <code>Inventory</code></td><td>数值</td></tr>
+  <tr><td>状态（未审核/已审核/停用）</td><td><code>Status</code> <code>State</code> <code>Flag</code></td><td>整型</td></tr>
+  <tr><td>日期 / 下单时间</td><td><code>OrderDate</code> <code>BillDate</code> <code>CreateDate</code></td><td>时间</td></tr>
+  <tr><td>类型 / 分类</td><td><code>Type</code> <code>Category</code> <code>BillType</code></td><td>文本</td></tr>
+  <tr><td>名称</td><td><code>*Name</code> <code>Title</code></td><td>文本</td></tr>
+  <tr><td>备注</td><td><code>Remark</code> <code>Memo</code> <code>Note</code></td><td>文本</td></tr>
+</table>
+
+<h2>五、拿到题目的 30 秒读题法</h2>
+<ol class="steps">
+  <li><b>圈出「要显示什么」</b>——决定 SELECT 哪几列，也决定要不要连表（跨表字段 → 必须 JOIN）。</li>
+  <li><b>圈出「限定条件」</b>——时间/状态/金额阈值，决定 WHERE。</li>
+  <li><b>圈出「要不要合计」</b>——出现「总共/几单/合计」→ GROUP BY；「超过 X」→ HAVING。</li>
+  <li><b>圈出「所有 / 没有 / 每个…最高」</b>——这几个词直接决定 LEFT JOIN 或 ROW_NUMBER。</li>
+  <li><b>最后看排序要求</b>——ORDER BY，注意行号/时间/金额从大到小。</li>
+</ol>
+
+<div class="ok"><b>万一某个字段名实在看不懂：</b>按语义猜一个最像的写上去，并在 SQL 上方写一行注释，例如<br><code>-- 假设 Je 是金额字段</code><br>手写卷按思路给分，写注释比空着强得多。</div>
+
+<div class="warn"><b>三个一定不能猜的东西：</b>① 主键和外键的关系（猜错整题错）；② WHERE 和 HAVING 的位置（放错直接语法错误）；③ LEFT JOIN 的方向（写反数据就少一半）。这三个必须从表结构里确认，不能凭感觉。</div>
+
+<p class="foot">
+  配套：<a href="learn.html">十题逐题学（讲→写→对）</a> · <a href="exam.html">带解析试卷</a> · <a href="paper.html">空白手写卷</a> · <a href="study.html">速查表</a>
+</p>
+
+</div>
+</body>
+</html>
