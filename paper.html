@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SQL Server 手写模拟卷（可打印）</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:#111;font:15px/1.75 "Times New Roman",SimSun,system-ui,-apple-system,"Microsoft YaHei",serif}
+  .sheet{max-width:860px;margin:0 auto;padding:26px 22px 60px}
+  h1{font-size:22px;text-align:center;margin:6px 0 4px;letter-spacing:.04em}
+  .meta{text-align:center;font-size:13px;color:#555;margin-bottom:18px}
+  h2{font-size:17px;margin:30px 0 10px;padding-bottom:6px;border-bottom:2px solid #111}
+  h3{font-size:15px;margin:22px 0 6px}
+  .note{border:1px solid #999;background:#f7f7f7;padding:10px 12px;font-size:13.5px;margin:14px 0}
+  .note b{display:block;margin-bottom:3px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+  th,td{border:1px solid #666;padding:5px 7px;text-align:left;vertical-align:top}
+  th{background:#eee}
+  code{font-family:Consolas,"Courier New",monospace;font-size:13px;background:#f2f2f2;padding:0 3px}
+  pre{font-family:Consolas,"Courier New",monospace;font-size:13px;background:#f5f5f5;border:1px solid #ddd;padding:9px 11px;margin:8px 0;overflow-x:auto;line-height:1.6}
+  .q{margin:18px 0 4px;font-weight:700}
+  .q .sc{font-weight:400;color:#666;font-size:12.5px}
+  .write{border:1px dashed #bbb;border-radius:4px;height:96px;margin:6px 0 2px;background:
+    repeating-linear-gradient(transparent,transparent 23px,#e8e8e8 23px,#e8e8e8 24px)}
+  .write.tall{height:150px}
+  .ans{background:#fbfbfb;border-left:3px solid #333;padding:9px 12px;margin:8px 0 16px;font-size:13.5px}
+  .ans b{display:block;margin-bottom:4px}
+  .ans pre{background:#fff;border:1px solid #ddd}
+  .pt{color:#666;font-size:12.5px}
+  .pagebreak{page-break-before:always;border-top:1px dashed #ccc;margin-top:40px;padding-top:24px}
+  .toc{font-size:13.5px;color:#333;border:1px solid #ccc;padding:10px 14px;margin:14px 0}
+  .toc li{margin:2px 0}
+  @media print{
+    body{font-size:12.5pt}
+    .sheet{padding:0;max-width:none}
+    .noprint{display:none!important}
+    .q,.ans{break-inside:avoid}
+    .pagebreak{border-top:none;margin-top:0;padding-top:0}
+    h2{break-after:avoid}
+  }
+  @media (max-width:560px){.sheet{padding:16px 14px 50px}}
+
+  /* --- 移动端基础修补（自动注入） --- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  a,button,input,select,textarea,summary,[role="button"]{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<h1>SQL Server 数据库实操 · 手写模拟卷</h1>
+<p class="meta">姓名：____________　　日期：____________　　限时：60 分钟　　满分：200 分（卷 A 100 + 卷 B 100）</p>
+
+<div class="note noprint">
+  <b>怎么用（不看也得看）</b>
+  ① 电脑上按 <code>Ctrl + P</code> 打印（A4，勾选「背景图形」）；没打印机就手机看这个页面，在纸上写。<br>
+  ② <strong>先写完再对答案</strong>——答案在第二页之后，别偷看。<br>
+  ③ 写完拍照发我，我按笔试判分标准给你改，指出哪一步丢分。<br>
+  ④ 重点不是做对，是<strong>把「写作顺序」练成肌肉记忆</strong>：FROM → JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY。
+</div>
+
+<div class="toc">
+  <b>本次用到的表</b>
+  <ul>
+    <li><code>Customer</code>（客户）：Id, CustomerName, Phone, Status</li>
+    <li><code>Orders</code>（订单）：Id, CustomerId, OrderNo, Amount, OrderDate, Status</li>
+    <li><code>OrderDetail</code>（订单明细）：Id, OrderId, ProductId, Qty, Price, Amount</li>
+    <li><code>Product</code>（产品）：Id, ProductName, Category, Price, Stock</li>
+    <li><code>BillMaster</code>（单据主表）：Id, BillNo, BillType, BillDate, CustomerName, TotalAmount</li>
+    <li><code>BillDetail</code>（单据明细）：Id, BillId, LineNo, ProductName, Qty, Amount</li>
+    <li><code>Account</code>（账户）：Id, AccountName, Balance</li>
+  </ul>
+</div>
+
+<h2>卷 A · 多表增删改查（100 分）</h2>
+
+<div class="q">1. 查询 2026 年 11 月下的所有订单，显示订单号、金额、下单日期，按日期从新到旧。<span class="sc">（10 分）</span></div>
+<div class="write"></div>
+
+<div class="q">2. 查询订单金额最高的前 10 笔订单（订单号、金额）。<span class="sc">（10 分）</span></div>
+<div class="write"></div>
+
+<div class="q">3. 查询每笔订单的订单号、客户名称、金额（订单和客户两张表）。<span class="sc">（12 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">4. 查询所有客户及其订单数量，<strong>没有下过单的客户也要显示，数量为 0</strong>。<span class="sc">（15 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">5. 统计 2026 年每个客户的下单次数与总金额，只保留总金额超过 10000 的，按总金额从高到低。<span class="sc">（15 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">6. 向客户表新增一个客户：名称「丁公司」，电话 13900000004，状态 1，创建时间取当前时间。<span class="sc">（10 分）</span></div>
+<div class="write"></div>
+
+<div class="q">7. 按产品表的价格，把「未审核（Status = 0）」订单的金额重算为 数量 × 单价。<span class="sc">（14 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">8. 删除「已停用（Status = 9）」客户名下的所有订单。<span class="sc">（14 分）</span></div>
+<div class="write tall"></div>
+
+<div class="pagebreak"></div>
+
+<h2>卷 B · 自定义报表与套打（100 分）</h2>
+
+<div class="q">1. 按月统计 2026 年的订单金额合计，只要 6 月到 9 月。<span class="sc">（15 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">2. 按客户统计 1–12 月各月金额，做成一行一个客户、12 列一个月（行转列）。<span class="sc">（20 分）</span></div>
+<div class="write tall"></div>
+<div class="write tall"></div>
+
+<div class="q">3. 查询每个客户金额最高的那一笔订单（客户名、订单号、金额）。<span class="sc">（20 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">4. 套打：查询单据号 CK20261126001 的出库单，显示单号、日期、客户、明细行号、商品名称、数量，按明细行号排序。<span class="sc">（20 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">5. 套打：查询所有出库单（<strong>没有明细的单据也要显示</strong>）的单号、日期、客户、明细行号、商品、数量。<span class="sc">（15 分）</span></div>
+<div class="write tall"></div>
+
+<div class="q">6. 把每张单据的明细商品名拼成一行，用逗号分隔。<span class="sc">（10 分）</span></div>
+<div class="write tall"></div>
+
+<div class="pagebreak"></div>
+
+<h2>答案与判分点</h2>
+
+<h3>卷 A</h3>
+
+<div class="ans"><b>1. 查 11 月订单（10 分）</b>
+<pre>SELECT OrderNo, Amount, OrderDate
+FROM Orders
+WHERE OrderDate &gt;= '2026-11-01' AND OrderDate &lt; '2026-12-01'
+ORDER BY OrderDate DESC;</pre>
+<span class="pt">判分：日期区间 5 分（用 BETWEEN 也给分）、排序 3 分、字段 2 分。</span></div>
+
+<div class="ans"><b>2. 金额最高的前 10 笔（10 分）</b>
+<pre>SELECT TOP 10 OrderNo, Amount
+FROM Orders
+ORDER BY Amount DESC;</pre>
+<span class="pt">判分：<code>TOP 10</code> 5 分、<code>ORDER BY … DESC</code> 5 分。TOP 和 ORDER BY 必须同时出现，否则「前 10」没有意义。</span></div>
+
+<div class="ans"><b>3. 订单 + 客户名（12 分）</b>
+<pre>SELECT o.OrderNo, c.CustomerName, o.Amount
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId;</pre>
+<span class="pt">判分：别名 4 分、<code>ON c.Id = o.CustomerId</code> 5 分、字段 3 分。</span></div>
+
+<div class="ans"><b>4. 所有客户 + 订单数（0 也要显示）（15 分）</b>
+<pre>SELECT c.CustomerName, COUNT(o.Id) AS 订单数
+FROM Customer c
+LEFT JOIN Orders o ON o.CustomerId = c.Id
+GROUP BY c.CustomerName;</pre>
+<span class="pt">判分：<code>LEFT JOIN</code> 7 分（写成 JOIN 最多给 3 分）、<code>COUNT(o.Id)</code> 5 分（写 <code>COUNT(*)</code> 会显示 1，扣 3 分）、<code>GROUP BY</code> 3 分。</span></div>
+
+<div class="ans"><b>5. 按客户统计并筛总金额（15 分）</b>
+<pre>SELECT c.CustomerName, COUNT(o.Id) AS 下单次数, SUM(o.Amount) AS 总金额
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE o.OrderDate &gt;= '2026-01-01' AND o.OrderDate &lt; '2027-01-01'
+GROUP BY c.CustomerName
+HAVING SUM(o.Amount) &gt; 10000
+ORDER BY SUM(o.Amount) DESC;</pre>
+<span class="pt">判分：分组 4 分、时间条件 3 分、<code>HAVING</code> 4 分（写进 <code>WHERE</code> 直接 0 分）、排序 2 分、聚合 2 分。</span></div>
+
+<div class="ans"><b>6. 新增客户（10 分）</b>
+<pre>INSERT INTO Customer (CustomerName, Phone, Status, CreateTime)
+VALUES (N'丁公司', '13900000004', 1, GETDATE());</pre>
+<span class="pt">判分：<code>INSERT INTO … VALUES</code> 结构 6 分、字段与值一一对应 2 分、<code>GETDATE()</code> 2 分。</span></div>
+
+<div class="ans"><b>7. 关联更新订单金额（14 分）</b>
+<pre>UPDATE o
+SET o.Amount = o.Qty * p.Price
+FROM Orders o
+JOIN Product p ON p.Id = o.ProductId
+WHERE o.Status = 0;</pre>
+<span class="pt">判分：<code>UPDATE 别名</code> 4 分、<code>FROM … JOIN … ON …</code> 6 分、<code>SET</code> 表达式 4 分。这是 SQL Server 的标志写法。</span></div>
+
+<div class="ans"><b>8. 关联删除订单（14 分）</b>
+<pre>DELETE o
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE c.Status = 9;</pre>
+<span class="pt">判分：<code>DELETE 别名</code> 5 分、关联条件 5 分、<code>WHERE c.Status = 9</code> 4 分。</span></div>
+
+<h3>卷 B</h3>
+
+<div class="ans"><b>1. 按月统计 6–9 月（15 分）</b>
+<pre>SELECT MONTH(OrderDate) AS 月份, SUM(Amount) AS 金额合计
+FROM Orders
+WHERE OrderDate &gt;= '2026-06-01' AND OrderDate &lt; '2026-10-01'
+GROUP BY MONTH(OrderDate)
+ORDER BY MONTH(OrderDate);</pre>
+<span class="pt">判分：<code>MONTH()</code> 4 分、范围条件 4 分、<code>GROUP BY MONTH(OrderDate)</code> 5 分、排序 2 分。</span></div>
+
+<div class="ans"><b>2. 行转列：客户 × 月份（20 分）</b>
+<pre>SELECT c.CustomerName,
+  SUM(CASE WHEN MONTH(o.OrderDate) = 1  THEN o.Amount ELSE 0 END) AS M1,
+  SUM(CASE WHEN MONTH(o.OrderDate) = 2  THEN o.Amount ELSE 0 END) AS M2,
+  -- …… 3 到 11 月同样写法 ……
+  SUM(CASE WHEN MONTH(o.OrderDate) = 12 THEN o.Amount ELSE 0 END) AS M12
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE YEAR(o.OrderDate) = 2026
+GROUP BY c.CustomerName;</pre>
+<span class="pt">判分：<code>SUM(CASE WHEN …)</code> 结构 10 分、12 列齐全 6 分、分组 4 分。<strong>写不完 12 列就写 3 列 + 注「其余同理」</strong>，按 12 分给。</span></div>
+
+<div class="ans"><b>3. 每个客户金额最高的一单（20 分）</b>
+<pre>SELECT t.CustomerName, t.OrderNo, t.Amount FROM (
+  SELECT c.CustomerName, o.OrderNo, o.Amount,
+         ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn
+  FROM Orders o
+  JOIN Customer c ON c.Id = o.CustomerId
+) t
+WHERE t.rn = 1;</pre>
+<span class="pt">判分：<code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code> 10 分、外层筛选 <code>rn = 1</code> 6 分、关联 4 分。用子查询取 <code>MAX(Amount)</code> 也对，按 16 分给。</span></div>
+
+<div class="ans"><b>4. 套打单张出库单（20 分）</b>
+<pre>SELECT m.BillNo, m.BillDate, m.CustomerName,
+       d.LineNo, d.ProductName, d.Qty
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillNo = 'CK20261126001'
+ORDER BY d.LineNo;</pre>
+<span class="pt">判分：<code>LEFT JOIN</code> 8 分（写 JOIN 给 5 分，单张单据通常有明细）、条件 6 分、字段 4 分、排序 2 分。</span></div>
+
+<div class="ans"><b>5. 所有出库单（含无明细）（15 分）</b>
+<pre>SELECT m.BillNo, m.BillDate, m.CustomerName,
+       d.LineNo, d.ProductName, d.Qty
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillType = N'出库'
+ORDER BY m.BillNo, d.LineNo;</pre>
+<span class="pt">判分：<code>LEFT JOIN</code> 9 分（写成 JOIN 只给 2 分，这是本题唯一考点）、类型条件 4 分、排序 2 分。</span></div>
+
+<div class="ans"><b>6. 明细拼成一行（10 分）</b>
+<pre>SELECT m.BillNo,
+       STUFF((SELECT ',' + d.ProductName
+              FROM BillDetail d
+              WHERE d.BillId = m.Id
+              ORDER BY d.LineNo
+              FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, '') AS 明细
+FROM BillMaster m;</pre>
+<span class="pt">判分：子查询关联 4 分、<code>+ ','</code> 拼串 3 分、<code>STUFF</code> 去掉首个逗号 3 分。写不出整串就写前两部分。</span></div>
+
+<div class="pagebreak"></div>
+
+<h2>手写卷面规范（白送的分，别丢）</h2>
+<table>
+  <tr><th>项</th><th>要求</th><th>为什么</th></tr>
+  <tr><td>关键字</td><td>全大写：SELECT / FROM / WHERE / GROUP BY</td><td>阅卷扫一眼就能定位结构</td></tr>
+  <tr><td>换行</td><td>每个子句一行，缩进两级</td><td>结构清楚，漏写一眼能看出来</td></tr>
+  <tr><td>别名</td><td>每张表起别名，字段带前缀 <code>o.</code> <code>c.</code></td><td>两表同名列不混，也显得专业</td></tr>
+  <tr><td>别名</td><td>每个字段 <code>AS 中文名</code></td><td>报表题加分项</td></tr>
+  <tr><td>引号</td><td>中文字符串写 <code>N'中文'</code></td><td>SQL Server 防乱码，写上有加分</td></tr>
+  <tr><td>注释</td><td>不会的题先写 <code>-- 思路：…</code></td><td>按思路给分，比空白强</td></tr>
+  <tr><td>收尾</td><td>分号结尾，括号/<code>END</code> 成对</td><td>手写最容易漏</td></tr>
+</table>
+
+<h2>丢分自查（交卷前 60 秒）</h2>
+<table>
+  <tr><th>检查</th><th>错在哪</th></tr>
+  <tr><td>空值是不是 <code>IS NULL</code></td><td><code>= NULL</code> 查不到任何数据</td></tr>
+  <tr><td>聚合条件是不是在 <code>HAVING</code></td><td>放 <code>WHERE</code> 里直接语法错误</td></tr>
+  <tr><td><code>SELECT</code> 的列是否都在 <code>GROUP BY</code> 或被聚合</td><td>最常见的失分点</td></tr>
+  <tr><td>「所有 / 没有」的题有没有用 <code>LEFT JOIN</code></td><td>用 INNER 会把数据筛没</td></tr>
+  <tr><td><code>COUNT(*)</code> 还是 <code>COUNT(列)</code></td><td>要显示 0 的必须用 <code>COUNT(列)</code></td></tr>
+</table>
+
+<p class="pt" style="margin-top:26px">—— 写完把卷子拍给我，我按上面的判分点逐题给分，并告诉你哪一步最该补。</p>
+
+</div>
+</body>
+</html>
