@@ -238,7 +238,7 @@ const COURSE = [
     { type: "choice", q: "下面哪个是聚合函数？", opts: ["SUM", "SELECT", "WHERE"], a: 0, why: "SUM/COUNT/AVG/MAX/MIN 都是聚合函数，把一组值算成一个数。" },
     { type: "fill", q: "「总金额超过 1 万」这个条件要写哪个关键字？", tpl: "GROUP BY c.CustomerName\n___ SUM(o.Amount) > 10000", accept: ["having"], why: "筛「组」用 HAVING；写 WHERE 会直接语法错误。" },
     { type: "build", q: "拼一条：每个客户总金额，只留超 1 万的。", tokens: ["SELECT", "c.CustomerName, SUM(o.Amount)", "FROM", "Orders o JOIN Customer c ON c.Id = o.CustomerId", "GROUP BY", "c.CustomerName", "HAVING", "SUM(o.Amount) > 10000", "WHERE"], answer: ["SELECT", "c.CustomerName, SUM(o.Amount)", "FROM", "Orders o JOIN Customer c ON c.Id = o.CustomerId", "GROUP BY", "c.CustomerName", "HAVING", "SUM(o.Amount) > 10000"], why: "顺序：FROM/JOIN → GROUP BY → HAVING。" },
-    { type: "write", q: "写出：按客户统计 2026 年总金额，只要超过 1 万的。", must: [/group\s+by/i, /sum\s*\(/i, /having/i], mustNot: [/where[\s\S]*sum\s*\(/i], sample: "SELECT c.CustomerName, SUM(o.Amount) AS 总金额\nFROM Orders o JOIN Customer c ON c.Id = o.CustomerId\nWHERE o.OrderDate >= '2026-01-01'\nGROUP BY c.CustomerName\nHAVING SUM(o.Amount) > 10000;", why: "聚合条件必须放 HAVING，放 WHERE 会报错。" }
+    { type: "write", q: "写出：按客户统计 2026 年总金额，只要超过 1 万的。", must: [/group\s+by/i, /sum\s*\(/i, /having/i], mustNot: [/where\b(?:(?!\bgroup\s+by\b|\bhaving\b)[\s\S])*?\bsum\s*\(/i], sample: "SELECT c.CustomerName, SUM(o.Amount) AS 总金额\nFROM Orders o JOIN Customer c ON c.Id = o.CustomerId\nWHERE o.OrderDate >= '2026-01-01'\nGROUP BY c.CustomerName\nHAVING SUM(o.Amount) > 10000;", why: "聚合条件必须放 HAVING，放 WHERE 会报错。" }
   ]
 },
 {
