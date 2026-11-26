@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ea">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="SQL 从 0 到 1：10 章互动课程，学完能独立写多表查询。纯在线练习，过关解锁下一章。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>SQL 从 0 到 1 · 互动课程</title>
+<style>
+  :root{--bg:#f4f1ea;--card:#fffdf8;--card2:#faf7f0;--ink:#1c1e25;--ink2:#4a4d59;--muted:#6f7280;--line:#e3ddd0;--line2:#cec6b5;--indigo:#2f44a3;--indigo2:#4358c4;--indigoSoft:#eaedfb;--rust:#b0431a;--rustSoft:#fcece3;--green:#0f6b47;--greenSoft:#e6f4ec;--gold:#9a6a06;--goldSoft:#fdf3dd;--code:#1a1e26;--codeInk:#e7edf8;--shadow:0 1px 2px rgba(28,30,37,.05),0 10px 26px -14px rgba(28,30,37,.2);--r:14px}
+  @media (prefers-color-scheme:dark){:root{--bg:#12141a;--card:#1a1d24;--card2:#20242c;--ink:#e9eaef;--ink2:#c3c6d0;--muted:#8d93a1;--line:#2a2f39;--line2:#3a4150;--indigo:#8fa4ff;--indigo2:#a8b8ff;--indigoSoft:#1d2337;--rust:#f0a179;--rustSoft:#2a1d16;--green:#6fd3a5;--greenSoft:#152420;--gold:#ffd07a;--goldSoft:#2a2317;--code:#0d1016;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6)}}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.72 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+  .wrap{max-width:700px;margin:0 auto;padding:16px}
+  .top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin:0 -16px 16px;padding:10px 16px}
+  .top .row{display:flex;align-items:center;gap:10px}
+  .top .t1{font-size:15px;font-weight:750;flex:1}
+  .top .t2{font-size:12px;color:var(--muted)}
+  .bar{height:5px;background:var(--line);border-radius:3px;margin-top:9px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--indigo),var(--green));transition:width .45s}
+  h1{font-size:23px;margin:0 0 6px;line-height:1.35}
+  .lead{color:var(--muted);font-size:14.5px;margin:0 0 16px}
+  h2{font-size:18px;margin:14px 0 8px;line-height:1.45}
+  h3{font-size:15px;margin:16px 0 6px;color:var(--ink2)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px;margin:0 0 13px;box-shadow:var(--shadow)}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:.05em;padding:3px 10px;border-radius:999px;margin-bottom:11px;font-weight:650}
+  .b-learn{background:var(--indigoSoft);color:var(--indigo);border:1px solid color-mix(in srgb,var(--indigo) 30%,transparent)}
+  .b-do{background:var(--rustSoft);color:var(--rust);border:1px solid color-mix(in srgb,var(--rust) 28%,transparent)}
+  .b-ok{background:var(--greenSoft);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 28%,transparent)}
+  .b-gold{background:var(--goldSoft);color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 30%,transparent)}
+  p{margin:8px 0}
+  .small{font-size:13px;color:var(--muted)}
+  code.i{background:var(--card2);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
+  pre{background:var(--code);color:var(--codeInk);border-radius:12px;padding:13px;overflow-x:auto;font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:13.5px;line-height:1.75;margin:10px 0}
+  pre .kw{color:#ffb27a;font-weight:650}pre .fn{color:#8fbcff}pre .st{color:#96e6a8}pre .cm{color:#77839a}
+  ul{margin:8px 0;padding-left:20px}li{margin:6px 0}
+  /* 章节列表 */
+  .chap{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;text-decoration:none;color:var(--ink);box-shadow:var(--shadow);transition:transform .08s}
+  .chap:active{transform:scale(.99)}
+  .chap .n{flex:0 0 34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--indigoSoft);color:var(--indigo)}
+  .chap.done .n{background:var(--greenSoft);color:var(--green)}
+  .chap.lock{opacity:.55}
+  .chap .x{flex:1;min-width:0}
+  .chap .x b{display:block;font-size:15.5px}
+  .chap .x i{font-style:normal;font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+  .chap .s{font-size:16px}
+  /* 练习 */
+  .opts{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+  .opts button{text-align:left;padding:13px 14px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);font:inherit;font-size:14.5px;line-height:1.5;cursor:pointer}
+  .opts button.right{border-color:var(--green);background:var(--greenSoft)}
+  .opts button.wrong{border-color:var(--rust);background:var(--rustSoft)}
+  .tray{min-height:54px;border:1px dashed var(--line2);border-radius:12px;padding:9px;display:flex;flex-wrap:wrap;gap:7px;background:var(--code);margin:10px 0}
+  .tray:empty:before{content:"点下面的积木按 SQL 顺序拼起来";color:#6d7a8f;font-size:12.5px}
+  .tray .tok{background:#22304a;border-color:#3d5a8f;color:#dce7f8}
+  .tok{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;padding:7px 10px;border-radius:8px;background:var(--card2);border:1px solid var(--line2);color:var(--ink);cursor:pointer}
+  .tok.used{opacity:.25;pointer-events:none}
+  .pool{display:flex;flex-wrap:wrap;gap:7px}
+  textarea{width:100%;min-height:92px;margin-top:10px;font:inherit;font-family:ui-monospace,Consolas,monospace;font-size:16px;padding:12px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);resize:vertical}
+  input[type=text]{width:100%;font:inherit;font-family:ui-monospace,Consolas,monospace;font-size:16px;padding:13px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);margin-top:10px}
+  .row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+  button{font:inherit;font-size:15.5px;font-weight:650;padding:13px 16px;border-radius:12px;border:1px solid var(--line2);background:var(--card);color:var(--ink);cursor:pointer;transition:transform .08s}
+  button:active{transform:scale(.985)}
+  button.primary{flex:1;background:linear-gradient(135deg,var(--indigo2),var(--indigo));border-color:transparent;color:#fff}
+  button.ghost{background:transparent;color:var(--muted);font-weight:500}
+  .fb{margin-top:12px;padding:11px 13px;border-radius:11px;font-size:14px;display:none}
+  .fb.on{display:block}
+  .fb.ok{background:var(--greenSoft);border:1px solid color-mix(in srgb,var(--green) 30%,transparent)}
+  .fb.no{background:var(--rustSoft);border:1px solid color-mix(in srgb,var(--rust) 28%,transparent)}
+  .fb b{display:block;margin-bottom:3px}
+  .steps{display:flex;gap:6px;margin-bottom:13px}
+  .steps span{flex:1;text-align:center;font-size:11.5px;padding:6px 0;border-radius:9px;border:1px solid var(--line2);color:var(--muted);font-weight:600}
+  .steps span.on{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .steps span.done{background:var(--greenSoft);border-color:var(--green);color:var(--green)}
+  .done{text-align:center;padding:26px 16px}
+  .done .big{font-size:46px}
+  .miss{border-left:3px solid var(--rust);background:var(--rustSoft);border-radius:0 10px 10px 0;padding:10px 12px;margin:9px 0;font-size:13.5px}
+  .miss b{color:var(--rust)}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+  a,button,input,select,textarea,summary{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="row"><div class="t1" id="tt">SQL 从 0 到 1</div><div class="t2" id="tp">0 / 10 章</div></div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+  <div id="view"></div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   课程数据：10 章 × 4 练
+   drill.type: choice | build | fill | write
+   ============================================================ */
+const COURSE = [
+{
+  id: "c1", title: "表、行、列：先看懂数据", sub: "不用写 SQL，先建立画面感",
+  teach: {
+    lead: "数据库 = 一个 Excel 文件；文件里的每个工作表 = 一张表。",
+    points: [
+      "<b>一行</b> = 一条记录（比如一笔订单）",
+      "<b>一列</b> = 一个字段（比如金额）",
+      "<b>主键</b> = 能唯一认出一行的字段（通常是 Id）",
+      "<b>外键</b> = 指向另一张表主键的字段（比如订单里的 CustomerId）"
+    ],
+    code: "Customer 客户表          Orders 订单表\nId  CustomerName        Id  CustomerId  Amount\n1   甲公司              101      1        1200\n2   乙公司              102      2        5600",
+    tip: "订单表里为什么不直接写客户名字？因为名字改一次要改一万条订单。只存编号，查询时再对回来。"
+  },
+  drills: [
+    { type: "choice", q: "表里的一行代表什么？", opts: ["一条记录（一件事）", "一个字段", "一个数据库"], a: 0, why: "一行就是一条完整的记录，比如一笔订单的所有信息。" },
+    { type: "choice", q: "主键（Id）的作用是什么？", opts: ["唯一标识一行", "让表变好看", "存金额"], a: 0, why: "主键唯一且不为空，用它就能精确找到某一行。" },
+    { type: "choice", q: "订单表里的 CustomerId 属于什么？", opts: ["外键，指向客户表的 Id", "主键", "普通文本"], a: 0, why: "它引用客户表的主键，这就是两张表的「关系」。" },
+    { type: "choice", q: "要记录「哪个客户下的单」，正确做法是？", opts: ["订单表存客户编号", "订单表存客户名字", "不用记"], a: 0, why: "存编号不冗余，客户改名时只改一处。" }
+  ]
+},
+{
+  id: "c2", title: "SELECT：我要哪几列", sub: "第一条真正能跑的 SQL",
+  teach: {
+    lead: "查询分两步：先说<b>要哪几列</b>，再说<b>从哪张表</b>。",
+    points: [
+      "<code class='i'>SELECT 列1, 列2</code> —— 要哪些列",
+      "<code class='i'>FROM 表</code> —— 从哪张表",
+      "<code class='i'>SELECT *</code> —— 所有列（练习方便，正式报表别用）",
+      "<code class='i'>AS 别名</code> —— 给列改个名字显示"
+    ],
+    code: "SELECT CustomerName, Phone\nFROM Customer;",
+    tip: "SELECT 后面写列名，不要加表名（除非多表查询）。列之间用英文逗号。"
+  },
+  drills: [
+    { type: "build", q: "拼一条：查出客户表里所有客户的名称。", tokens: ["SELECT", "CustomerName", "FROM", "Customer", "WHERE"], answer: ["SELECT", "CustomerName", "FROM", "Customer"], why: "只要列名和表名，不需要条件。" },
+    { type: "choice", q: "要同时看「客户名称」和「电话」，怎么写？", opts: ["SELECT CustomerName, Phone FROM Customer", "SELECT CustomerName Phone FROM Customer", "SELECT CustomerName; Phone FROM Customer"], a: 0, why: "多列之间用<b>英文逗号</b>分隔。漏了逗号会被当成别名，直接报错或结果错。" },
+    { type: "fill", q: "把列名改成显示「客户名称」——补上 AS 后面那一半。", tpl: "SELECT CustomerName ___ FROM Customer;", accept: ["as 客户名称", "客户名称"], why: "<code class='i'>AS 客户名称</code>：给结果列起中文名，报表更好读。" },
+    { type: "write", q: "写出：查出订单表里所有订单号。", must: [/select/i, /orderno/i, /from\s+orders/i], sample: "SELECT OrderNo FROM Orders;", why: "三段结构：SELECT 列 → FROM 表。" }
+  ]
+},
+{
+  id: "c3", title: "WHERE：我要哪些行", sub: "筛选 + 空值陷阱",
+  teach: {
+    lead: "WHERE 决定「只要哪些行」。比较符：<code class='i'>&gt; &lt; &gt;= &lt;= = &lt;&gt;</code>，多个条件用 <b>AND / OR</b>。",
+    points: [
+      "文本要加单引号：<code class='i'>WHERE Status = 'Shipped'</code>",
+      "模糊匹配：<code class='i'>LIKE '%甲%'</code>",
+      "区间：<code class='i'>BETWEEN 1 AND 10</code>",
+      "<b>空值不能用等号</b>！必须写 <code class='i'>IS NULL</code>"
+    ],
+    code: "SELECT OrderNo, Amount\nFROM Orders\nWHERE Amount > 1000\n  AND Status = 1;",
+    tip: "NULL 表示「不知道」，不是 0 也不是空字符串。所以 A = NULL 永远不成立。"
+  },
+  drills: [
+    { type: "choice", q: "要查金额大于 1000 的订单，条件怎么写？", opts: ["WHERE Amount > 1000", "WHERE Amount >= 1000", "WHERE Amount = 1000"], a: 0, why: "大于用 <code class='i'>&gt;</code>；<code>&gt;=</code> 是大于等于。" },
+    { type: "fill", q: "查出金额为空的订单，补条件：", tpl: "SELECT OrderNo FROM Orders WHERE Amount ___", accept: ["is null"], why: "空值判断专用 <code class='i'>IS NULL</code>，写 <code>= NULL</code> 永远查不到。" },
+    { type: "build", q: "拼一条：金额大于 1000 且状态为 1 的订单号。", tokens: ["SELECT", "OrderNo", "FROM", "Orders", "WHERE", "Amount > 1000", "AND", "Status = 1", "OR"], answer: ["SELECT", "OrderNo", "FROM", "Orders", "WHERE", "Amount > 1000", "AND", "Status = 1"], why: "两个条件同时满足 → 用 AND；用 OR 就变成「满足任一」。" },
+    { type: "write", q: "写出：查 2026 年 11 月下的订单号与金额。", must: [/select/i, /from\s+orders/i, /orderno|amount/i, /2026-11/], sample: "SELECT OrderNo, Amount FROM Orders\nWHERE OrderDate >= '2026-11-01' AND OrderDate < '2026-12-01';", why: "日期用区间：≥月初 且 &lt;下月初，比 BETWEEN 稳。" }
+  ]
+},
+{
+  id: "c4", title: "ORDER BY 与 TOP", sub: "排序 + 取前几名",
+  teach: {
+    lead: "排序用 <code class='i'>ORDER BY 列 ASC|DESC</code>；只要前几行用 <code class='i'>TOP N</code>。",
+    points: [
+      "<b>ASC</b> 升序（默认，不写就是这个）",
+      "<b>DESC</b> 降序（从大到小）",
+      "<code class='i'>TOP 10</code> 只取前 10 行（SQL Server 写法）",
+      "TOP 必须配 ORDER BY，否则「前 10」没有意义"
+    ],
+    code: "SELECT TOP 10 OrderNo, Amount\nFROM Orders\nORDER BY Amount DESC;",
+    tip: "ORDER BY 永远写在最后（在 WHERE / GROUP BY 之后）。"
+  },
+  drills: [
+    { type: "choice", q: "要按金额从大到小排，写哪个？", opts: ["ORDER BY Amount DESC", "ORDER BY Amount ASC", "ORDER Amount DESC"], a: 0, why: "DESC = 降序。ASC 是从小到大。" },
+    { type: "build", q: "拼一条：金额最高的前 10 笔订单。", tokens: ["SELECT", "TOP 10", "OrderNo, Amount", "FROM", "Orders", "ORDER BY", "Amount DESC", "WHERE"], answer: ["SELECT", "TOP 10", "OrderNo, Amount", "FROM", "Orders", "ORDER BY", "Amount DESC"], why: "TOP 10 紧跟在 SELECT 后面，排序放最后。" },
+    { type: "choice", q: "只写 SELECT TOP 10 … 但不写 ORDER BY，会怎样？", opts: ["结果顺序不确定，可能每次不一样", "报错", "自动按主键排"], a: 0, why: "没有排序就没有「前 10」的概念，数据库返回哪些行是不确定的。" },
+    { type: "write", q: "写出：查金额最高的 5 笔订单（订单号、金额）。", must: [/top\s*5/i, /order\s+by/i, /desc/i], sample: "SELECT TOP 5 OrderNo, Amount FROM Orders ORDER BY Amount DESC;", why: "TOP 5 + ORDER BY … DESC，两个都要有。" }
+  ]
+},
+{
+  id: "c5", title: "JOIN：把两张表连起来", sub: "多表查询的核心",
+  teach: {
+    lead: "订单表只有客户编号，客户名字在客户表。要把它们合起来看，就用 <code class='i'>JOIN … ON</code>。",
+    points: [
+      "<b>ON</b> 后面写「两张表怎么对上」：客户.Id = 订单.CustomerId",
+      "两张表都要<b>起别名</b>（o、c），字段前带前缀",
+      "JOIN 只保留两边都匹配上的行",
+      "连错 ON 不会报错，但结果全错——最难发现"
+    ],
+    code: "SELECT o.OrderNo, c.CustomerName, o.Amount\nFROM Orders o\nJOIN Customer c ON c.Id = o.CustomerId;",
+    tip: "读法：「客户的 Id 等于订单里的 CustomerId」。念顺了就不会写反。"
+  },
+  drills: [
+    { type: "choice", q: "为什么需要 JOIN？", opts: ["两张表的信息要合起来看", "表太大要拆分", "为了排序"], a: 0, why: "数据拆开存是为了不冗余，查询时再按关系拼回来。" },
+    { type: "build", q: "拼一条：订单号 + 客户名称。", tokens: ["SELECT", "o.OrderNo, c.CustomerName", "FROM", "Orders o", "JOIN", "Customer c", "ON", "c.Id = o.CustomerId", "WHERE"], answer: ["SELECT", "o.OrderNo, c.CustomerName", "FROM", "Orders o", "JOIN", "Customer c", "ON", "c.Id = o.CustomerId"], why: "顺序：表 别名 → JOIN 表 别名 → ON 条件。" },
+    { type: "choice", q: "ON 写成 c.Id = o.Id 会怎样？", opts: ["不报错，但结果全错", "直接报错", "自动纠正"], a: 0, why: "语法合法但逻辑错：变成按订单号连客户。这类错误最难发现。" },
+    { type: "write", q: "写出：查订单号、客户名称、金额。", must: [/join/i, /on\s+c\.id\s*=\s*o\.customerid/i], sample: "SELECT o.OrderNo, c.CustomerName, o.Amount\nFROM Orders o\nJOIN Customer c ON c.Id = o.CustomerId;", why: "JOIN + ON 是这道题的全部考点。" }
+  ]
+},
+{
+  id: "c6", title: "LEFT JOIN：把「没有」也找出来", sub: "面试最常考的一个词",
+  teach: {
+    lead: "内连接会丢掉「匹配不上」的行。左连接保留<b>左边全部</b>，右边没有就补空。",
+    points: [
+      "题目出现<b>「所有」「每个都」「没有…的」</b> → 用 LEFT JOIN",
+      "<b>必须全部出现的那张表放左边</b>",
+      "数数量用 <code class='i'>COUNT(右表主键)</code>，不是 COUNT(*)",
+      "原因：没匹配的行右表整行为空，COUNT(*) 会把它数成 1"
+    ],
+    code: "-- 所有客户 + 订单数（没下单的显示 0）\nSELECT c.CustomerName, COUNT(o.Id) AS 订单数\nFROM Customer c\nLEFT JOIN Orders o ON o.CustomerId = c.Id\nGROUP BY c.CustomerName;",
+    tip: "类比点名册：左边全班名单，右边交作业的人，没交的写 0。"
+  },
+  drills: [
+    { type: "choice", q: "「所有客户及其订单数（没下单的显示 0）」用哪种连接？", opts: ["LEFT JOIN，客户表在左", "JOIN", "RIGHT JOIN，订单表在左"], a: 0, why: "客户必须全部出现 → 客户表放左，用 LEFT JOIN。" },
+    { type: "choice", q: "统计订单数时为什么用 COUNT(o.Id) 而不是 COUNT(*)？", opts: ["COUNT(*) 会把空行数成 1", "COUNT(o.Id) 更快", "两者完全等价"], a: 0, why: "没下单的客户，右表整行为空；COUNT(列) 不数空值，所以是 0。" },
+    { type: "build", q: "拼一条：每个客户的订单数（含 0）。", tokens: ["SELECT", "c.CustomerName, COUNT(o.Id)", "FROM", "Customer c", "LEFT JOIN", "Orders o ON o.CustomerId = c.Id", "GROUP BY", "c.CustomerName", "ORDER BY"], answer: ["SELECT", "c.CustomerName, COUNT(o.Id)", "FROM", "Customer c", "LEFT JOIN", "Orders o ON o.CustomerId = c.Id", "GROUP BY", "c.CustomerName"], why: "左连接 + 数右表主键 + 按客户分组，三件套。" },
+    { type: "write", q: "写出：所有客户的名字和订单数（没下单显示 0）。", must: [/left\s+join/i, /count\s*\(\s*o\.id\s*\)/i, /group\s+by/i], mustNot: [/count\s*\(\s*\*\s*\)/i], sample: "SELECT c.CustomerName, COUNT(o.Id) AS 订单数\nFROM Customer c\nLEFT JOIN Orders o ON o.CustomerId = c.Id\nGROUP BY c.CustomerName;", why: "看到「所有」就写 LEFT JOIN；数量用 COUNT(右表主键)。" }
+  ]
+},
+{
+  id: "c7", title: "GROUP BY 与 HAVING", sub: "把多行压成一行算账",
+  teach: {
+    lead: "报表要「一行一个客户，显示他总共买了多少」——这就是分组统计。",
+    points: [
+      "聚合函数：<code class='i'>SUM / COUNT / AVG / MAX / MIN</code>",
+      "按谁分组就 <code class='i'>GROUP BY 谁</code>",
+      "SELECT 里的列，<b>要么在 GROUP BY，要么被聚合</b>",
+      "筛「行」用 WHERE，筛「组」用 <b>HAVING</b>"
+    ],
+    code: "SELECT c.CustomerName, SUM(o.Amount) AS 总金额\nFROM Orders o\nJOIN Customer c ON c.Id = o.CustomerId\nWHERE o.OrderDate >= '2026-01-01'\nGROUP BY c.CustomerName\nHAVING SUM(o.Amount) > 10000;",
+    tip: "一句话分清：WHERE 筛票，HAVING 筛信封。"
+  },
+  drills: [
+    { type: "choice", q: "下面哪个是聚合函数？", opts: ["SUM", "SELECT", "WHERE"], a: 0, why: "SUM/COUNT/AVG/MAX/MIN 都是聚合函数，把一组值算成一个数。" },
+    { type: "fill", q: "「总金额超过 1 万」这个条件要写哪个关键字？", tpl: "GROUP BY c.CustomerName\n___ SUM(o.Amount) > 10000", accept: ["having"], why: "筛「组」用 HAVING；写 WHERE 会直接语法错误。" },
+    { type: "build", q: "拼一条：每个客户总金额，只留超 1 万的。", tokens: ["SELECT", "c.CustomerName, SUM(o.Amount)", "FROM", "Orders o JOIN Customer c ON c.Id = o.CustomerId", "GROUP BY", "c.CustomerName", "HAVING", "SUM(o.Amount) > 10000", "WHERE"], answer: ["SELECT", "c.CustomerName, SUM(o.Amount)", "FROM", "Orders o JOIN Customer c ON c.Id = o.CustomerId", "GROUP BY", "c.CustomerName", "HAVING", "SUM(o.Amount) > 10000"], why: "顺序：FROM/JOIN → GROUP BY → HAVING。" },
+    { type: "write", q: "写出：按客户统计 2026 年总金额，只要超过 1 万的。", must: [/group\s+by/i, /sum\s*\(/i, /having/i], mustNot: [/where[\s\S]*sum\s*\(/i], sample: "SELECT c.CustomerName, SUM(o.Amount) AS 总金额\nFROM Orders o JOIN Customer c ON c.Id = o.CustomerId\nWHERE o.OrderDate >= '2026-01-01'\nGROUP BY c.CustomerName\nHAVING SUM(o.Amount) > 10000;", why: "聚合条件必须放 HAVING，放 WHERE 会报错。" }
+  ]
+},
+{
+  id: "c8", title: "子查询与「每组取第一」", sub: "进阶一点，但套路固定",
+  teach: {
+    lead: "「每个客户金额最高的那一单」——不是全校第一，是每个班第一。要先在组内排名。",
+    points: [
+      "<code class='i'>ROW_NUMBER() OVER (PARTITION BY 分组列 ORDER BY 排序列)</code> 发名次",
+      "PARTITION BY = 分班；ORDER BY = 班内排队",
+      "名次在<b>子查询</b>里生成，外层筛 <code class='i'>rn = 1</code>",
+      "不能在同一层 WHERE 里直接过滤窗口函数"
+    ],
+    code: "SELECT * FROM (\n  SELECT c.CustomerName, o.OrderNo, o.Amount,\n         ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn\n  FROM Orders o JOIN Customer c ON c.Id = o.CustomerId\n) t\nWHERE t.rn = 1;",
+    tip: "记四个字：分班、排队、编号、举手。"
+  },
+  drills: [
+    { type: "choice", q: "「每个客户金额最高的订单」正确思路是？", opts: ["先在每个客户内部排名，再取第 1", "整体按金额排序取第一条", "用 MAX 取最大值"], a: 0, why: "整体排序只能拿到全校第一；MAX 只能拿到金额，拿不到订单号。" },
+    { type: "choice", q: "PARTITION BY o.CustomerId 是什么意思？", opts: ["按客户分组，各自排名", "按金额排序", "只保留客户表"], a: 0, why: "PARTITION BY 就是「分班」，每个班内部独立排名。" },
+    { type: "build", q: "拼出排名子查询的核心部分。", tokens: ["SELECT", "ROW_NUMBER() OVER", "(", "PARTITION BY o.CustomerId", "ORDER BY o.Amount DESC", ")", "AS rn", "FROM", "Orders o"], answer: ["SELECT", "ROW_NUMBER() OVER", "(", "PARTITION BY o.CustomerId", "ORDER BY o.Amount DESC", ")", "AS rn", "FROM", "Orders o"], why: "OVER 括号里两件事：PARTITION BY 分组、ORDER BY 排队。" },
+    { type: "write", q: "写出：每个客户金额最高的一单（客户名、订单号、金额）。", must: [/row_number\s*\(\s*\)/i, /partition\s+by/i, /rn\s*=\s*1/i], sample: "SELECT t.CustomerName, t.OrderNo, t.Amount FROM (\n  SELECT c.CustomerName, o.OrderNo, o.Amount,\n         ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn\n  FROM Orders o JOIN Customer c ON c.Id = o.CustomerId\n) t WHERE t.rn = 1;", why: "窗口函数 + 外层 rn = 1，两步缺一不可。" }
+  ]
+},
+{
+  id: "c9", title: "增、删、改与事务", sub: "真正会改数据的语句",
+  teach: {
+    lead: "查询是读，INSERT / UPDATE / DELETE 是写。写完要能撤回，这就是事务。",
+    points: [
+      "<code class='i'>INSERT INTO 表 (列) VALUES (值)</code>",
+      "<code class='i'>UPDATE 表 SET 列=值 WHERE 条件</code>",
+      "<code class='i'>DELETE FROM 表 WHERE 条件</code>",
+      "关联更新用 <code class='i'>UPDATE 别名 … FROM 表 别名 JOIN …</code>",
+      "事务：<code class='i'>BEGIN TRAN</code> / <code class='i'>COMMIT</code> / <code class='i'>ROLLBACK</code>"
+    ],
+    code: "UPDATE o\nSET o.Amount = o.Qty * p.Price\nFROM Orders o\nJOIN Product p ON p.Id = o.ProductId\nWHERE o.Status = 0;",
+    tip: "改和删之前，先把 WHERE 写好——漏掉就是全表遭殃。"
+  },
+  drills: [
+    { type: "choice", q: "要修改数据用哪个关键字？", opts: ["UPDATE", "SELECT", "INSERT"], a: 0, why: "UPDATE 改，INSERT 加，DELETE 删。" },
+    { type: "fill", q: "事务执行到一半出错，要撤销已做的改动，用什么关键字的 TRAN？", tpl: "BEGIN TRAN;\n  ...\n___ TRAN;", accept: ["rollback"], why: "<code class='i'>ROLLBACK TRAN</code> 回滚，<code class='i'>COMMIT TRAN</code> 提交。" },
+    { type: "build", q: "拼一条关联更新：按产品价格重算未审核订单金额。", tokens: ["UPDATE", "o", "SET", "o.Amount = o.Qty * p.Price", "FROM", "Orders o", "JOIN", "Product p ON p.Id = o.ProductId", "WHERE", "o.Status = 0"], answer: ["UPDATE", "o", "SET", "o.Amount = o.Qty * p.Price", "FROM", "Orders o", "JOIN", "Product p ON p.Id = o.ProductId", "WHERE", "o.Status = 0"], why: "SQL Server 招牌：别名写在 UPDATE 后面，表在 FROM 里连。" },
+    { type: "write", q: "写出：把「电子」分类的产品单价上调 5%。", must: [/update\s+product/i, /set\b/i, /price\s*\*\s*1\.05/i, /where/i], sample: "UPDATE Product SET Price = Price * 1.05 WHERE Category = N'电子';", why: "单表更新不需要 FROM；WHERE 限定分类。" }
+  ]
+},
+{
+  id: "c10", title: "综合：报表与套打", sub: "把学过的拼起来",
+  teach: {
+    lead: "真实工作里，一道题往往要同时用 JOIN、分组、筛选、排序。",
+    points: [
+      "报表四件套：连接 → 筛行 → 分组 → 筛组",
+      "行转列：<code class='i'>SUM(CASE WHEN 条件 THEN 值 ELSE 0 END)</code>",
+      "套打：一张单据 = 表头 1 行 + 明细 N 行",
+      "套打必须 <b>LEFT JOIN</b> + <b>ORDER BY 行号</b>"
+    ],
+    code: "SELECT m.BillNo, m.BillDate, d.LineNo, d.ProductName, d.Qty\nFROM BillMaster m\nLEFT JOIN BillDetail d ON d.BillId = m.Id\nWHERE m.BillNo = 'CK001'\nORDER BY d.LineNo;",
+    tip: "套打题几乎只在考一件事：没有明细的单据也要打印 → LEFT JOIN。"
+  },
+  drills: [
+    { type: "choice", q: "套打单据时，为什么要用 LEFT JOIN？", opts: ["没有明细的单据也要打印出来", "性能更好", "语法要求"], a: 0, why: "用内连接会把空明细的单据整张丢掉。" },
+    { type: "build", q: "拼一条套打：指定单号的表头 + 明细，按行号排。", tokens: ["SELECT", "m.BillNo, d.LineNo, d.ProductName, d.Qty", "FROM", "BillMaster m", "LEFT JOIN", "BillDetail d ON d.BillId = m.Id", "WHERE", "m.BillNo = 'CK001'", "ORDER BY", "d.LineNo"], answer: ["SELECT", "m.BillNo, d.LineNo, d.ProductName, d.Qty", "FROM", "BillMaster m", "LEFT JOIN", "BillDetail d ON d.BillId = m.Id", "WHERE", "m.BillNo = 'CK001'", "ORDER BY", "d.LineNo"], why: "主表在左、LEFT JOIN 明细、按行号排序——套打三件套。" },
+    { type: "choice", q: "要把「12 个月」做成 12 列，用什么套路？", opts: ["SUM(CASE WHEN 月份 = n THEN 金额 ELSE 0 END)", "GROUP BY 月份", "ORDER BY 月份"], a: 0, why: "SUM + CASE 是行转列的万能模具；直接 GROUP BY 出来是 12 行不是 12 列。" },
+    { type: "write", q: "综合题：所有出库单（含无明细）的单号、行号、商品、数量。", must: [/left\s+join/i, /billmaster/i, /billdetail/i, /order\s+by/i], sample: "SELECT m.BillNo, d.LineNo, d.ProductName, d.Qty\nFROM BillMaster m\nLEFT JOIN BillDetail d ON d.BillId = m.Id\nWHERE m.BillType = N'出库'\nORDER BY m.BillNo, d.LineNo;", why: "「所有…含无明细」→ LEFT JOIN；打印顺序 → ORDER BY 行号。" }
+  ]
+}
+];
+
+/* ============================================================ */
+const KEY = "sqlroad.v1";
+const defaults = { done: {}, tries: {} };
+let S = Object.assign({}, defaults);
+try { const r = localStorage.getItem(KEY); if (r) S = Object.assign(S, JSON.parse(r)); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+const $ = (s) => document.querySelector(s);
+const view = $("#view");
+let chapterIdx = -1;   // -1 = 目录
+let drillIdx = 0;
+let phase = 0;         // 0 讲 1 练 2 结果
+let correctCount = 0;
+
+function esc(s) { return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+function hl(s) {
+  return esc(s)
+    .replace(/--[^\n]*/g, (m) => `<span class="cm">${m}</span>`)
+    .replace(/\b(SELECT|FROM|WHERE|JOIN|LEFT JOIN|GROUP BY|HAVING|ORDER BY|AS|AND|DESC|ON|UPDATE|SET|DELETE|INSERT INTO|VALUES|CASE WHEN|THEN|ELSE|END|BEGIN TRAN|COMMIT|ROLLBACK|PARTITION BY)\b/g, '<span class="kw">$1</span>')
+    .replace(/\b(COUNT|SUM|AVG|MAX|MIN|ROW_NUMBER|TOP)\b/g, '<span class="fn">$1</span>')
+    .replace(/'([^']*)'/g, '<span class="st">\'$1\'</span>');
+}
+function solvedCount() { return Object.keys(S.done).filter((k) => S.done[k]).length; }
+function isUnlocked(i) { return i === 0 || S.done[COURSE[i - 1].id]; }
+
+function renderHead() {
+  const n = solvedCount();
+  $("#tp").textContent = `${n} / ${COURSE.length} 章`;
+  $("#bar").style.width = (n / COURSE.length * 100) + "%";
+  $("#tt").textContent = chapterIdx === -1 ? "SQL 从 0 到 1" : `第 ${chapterIdx + 1} 章 · ${COURSE[chapterIdx].title}`;
+}
+
+/* ---------- 目录 ---------- */
+function renderIndex() {
+  chapterIdx = -1;
+  renderHead();
+  view.innerHTML = `
+    <h1>从 0 到 1 学 SQL</h1>
+    <p class="lead">10 章 · 40 道互动练习。每章：先看讲解 → 做 4 道题 → 全对才解锁下一章。</p>
+    ${COURSE.map((c, i) => {
+      const done = !!S.done[c.id];
+      const lock = !isUnlocked(i);
+      return `<a class="chap ${done ? "done" : ""} ${lock ? "lock" : ""}" href="#" data-c="${i}">
+        <div class="n">${i + 1}</div>
+        <div class="x"><b>${esc(c.title)}</b><i>${esc(c.sub)}</i></div>
+        <div class="s">${done ? "✅" : lock ? "🔒" : "▶"}</div>
+      </a>`;
+    }).join("")}
+    <div class="card" style="margin-top:16px">
+      <div class="badge b-gold">学完之后</div>
+      <p class="small">去 <a href="app.html">主应用</a> 做 60 分钟模拟考，验证掌握程度；表结构记不住就查 <a href="schema.html">表与字段手册</a>。</p>
+    </div>`;
+  view.querySelectorAll("[data-c]").forEach((a) => {
+    a.onclick = (e) => {
+      e.preventDefault();
+      const i = Number(a.dataset.c);
+      if (!isUnlocked(i)) { alert("先把上一章做完，全对就解锁。"); return; }
+      chapterIdx = i; drillIdx = 0; phase = 0; correctCount = 0;
+      render();
+    };
+  });
+}
+
+/* ---------- 章内 ---------- */
+function render() {
+  renderHead();
+  if (chapterIdx === -1) return renderIndex();
+  const C = COURSE[chapterIdx];
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  if (phase === 0) {
+    view.innerHTML = `
+      <div class="steps"><span class="on">① 讲解</span><span>② 练习</span><span>③ 过关</span></div>
+      <div class="card">
+        <div class="badge b-learn">第 ${chapterIdx + 1} 章 · 讲解</div>
+        <h2>${esc(C.title)}</h2>
+        <p>${C.teach.lead}</p>
+        <ul>${C.teach.points.map((p) => `<li>${p}</li>`).join("")}</ul>
+        <pre>${hl(C.teach.code)}</pre>
+        <p class="small">${C.teach.tip}</p>
+        <div class="row">
+          <button class="primary" data-act="start">看完了，开始练习 →</button>
+          <button class="ghost" data-act="back">回目录</button>
+        </div>
+      </div>`;
+    view.querySelector('[data-act="start"]').onclick = () => { phase = 1; drillIdx = 0; correctCount = 0; render(); };
+    view.querySelector('[data-act="back"]').onclick = () => { chapterIdx = -1; render(); };
+    return;
+  }
+
+  if (phase === 1) return renderDrill(C);
+
+  // 结果
+  const total = C.drills.length;
+  const pass = correctCount === total;
+  view.innerHTML = `
+    <div class="steps"><span class="done">① 讲解</span><span class="done">② 练习</span><span class="on">③ 过关</span></div>
+    <div class="card done">
+      <div class="big">${pass ? "🎉" : "🔁"}</div>
+      <h2>${pass ? "这一章掌握了" : `答对 ${correctCount} / ${total}，还没过关`}</h2>
+      <p>${pass ? "下一章已解锁。" : "全部答对才算过关——回去把错的再看一遍。"}</p>
+      <div class="row">
+        <button class="primary" data-act="retry">再练一遍</button>
+        <button data-act="back">回目录</button>
+      </div>
+    </div>`;
+  if (pass && !S.done[C.id]) { S.done[C.id] = true; save(); renderHead(); }
+  view.querySelector('[data-act="retry"]').onclick = () => { phase = 1; drillIdx = 0; correctCount = 0; render(); };
+  view.querySelector('[data-act="back"]').onclick = () => { chapterIdx = -1; render(); };
+}
+
+function renderDrill(C) {
+  const D = C.drills[drillIdx];
+  const n = C.drills.length;
+  const head = `
+    <div class="steps"><span class="done">① 讲解</span><span class="on">② 练习</span><span>③ 过关</span></div>
+    <div class="card">
+      <div class="badge b-do">第 ${drillIdx + 1} / ${n} 题</div>
+      <h2>${esc(D.q)}</h2>`;
+  let body = "";
+
+  if (D.type === "choice") {
+    body = `<div class="opts">${D.opts.map((o, k) => `<button data-k="${k}">${esc(o)}</button>`).join("")}</div>`;
+  } else if (D.type === "fill") {
+    body = `<pre>${hl(D.tpl)}</pre><input type="text" id="inp" placeholder="填这里…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="row"><button class="primary" data-act="sub">提交</button></div>`;
+  } else if (D.type === "build") {
+    body = `<div class="tray" id="tray"></div>
+      <div class="pool">${D.tokens.map((t, k) => `<button class="tok" data-k="${k}">${esc(t)}</button>`).join("")}</div>
+      <div class="row"><button class="ghost" data-act="clear">清空</button><button class="primary" data-act="sub">检查</button></div>`;
+  } else {
+    body = `<textarea id="inp" placeholder="在这里写出完整 SQL（写在纸上照着打也行）"></textarea>
+      <div class="row"><button class="primary" data-act="sub">提交检查</button></div>`;
+  }
+
+  view.innerHTML = head + body + `<div class="fb" id="fb"></div></div>`;
+
+  const fb = $("#fb");
+  const done = (ok, msg) => {
+    if (ok) correctCount++;
+    fb.className = "fb on " + (ok ? "ok" : "no");
+    fb.innerHTML = `<b>${ok ? "对了" : "再看一眼"}</b>${msg}`;
+    const btn = document.createElement("button");
+    btn.className = "primary";
+    btn.style.marginTop = "12px";
+    btn.textContent = drillIdx === n - 1 ? "看结果 →" : "下一题 →";
+    btn.onclick = () => {
+      drillIdx++;
+      if (drillIdx >= n) { phase = 2; render(); } else { render(); }
+    };
+    fb.appendChild(btn);
+  };
+
+  if (D.type === "choice") {
+    view.querySelectorAll("[data-k]").forEach((b) => {
+      b.onclick = () => {
+        if (b.dataset.done) return;
+        const k = Number(b.dataset.k);
+        if (k === D.a) { b.classList.add("right"); b.dataset.done = "1"; done(true, D.why); }
+        else { b.classList.add("wrong"); b.dataset.done = "1"; done(false, "正确答案不是这个。" + D.why); }
+      };
+    });
+  }
+
+  if (D.type === "fill") {
+    const sub = () => {
+      const v = ($("#inp").value || "").trim().toLowerCase().replace(/;+$/, "");
+      const ok = D.accept.some((a) => v === a || v.endsWith(a));
+      done(ok, D.why);
+    };
+    view.querySelector('[data-act="sub"]').onclick = sub;
+    $("#inp").addEventListener("keydown", (e) => { if (e.key === "Enter") sub(); });
+  }
+
+  if (D.type === "build") {
+    const picked = [];
+    const tray = $("#tray");
+    const sync = () => {
+      tray.innerHTML = picked.map((k, i) => `<button class="tok" data-i="${i}">${esc(D.tokens[k])}</button>`).join("");
+      tray.querySelectorAll("[data-i]").forEach((b) => { b.onclick = () => { picked.splice(Number(b.dataset.i), 1); sync(); }; });
+      view.querySelectorAll(".pool .tok").forEach((b) => b.classList.toggle("used", picked.includes(Number(b.dataset.k))));
+    };
+    view.querySelectorAll(".pool .tok").forEach((b) => {
+      b.onclick = () => { if (!picked.includes(Number(b.dataset.k))) { picked.push(Number(b.dataset.k)); sync(); } };
+    });
+    view.querySelector('[data-act="clear"]').onclick = () => { picked.length = 0; sync(); };
+    view.querySelector('[data-act="sub"]').onclick = () => {
+      const target = D.answer.map((t) => D.tokens.indexOf(t));
+      const ok = picked.length === target.length && picked.every((k, i) => k === target[i]);
+      done(ok, ok ? D.why : "顺序或积木不对。正确结构：" + D.answer.join(" ") + " —— " + D.why);
+    };
+  }
+
+  if (D.type === "write") {
+    view.querySelector('[data-act="sub"]').onclick = () => {
+      const sql = ($("#inp").value || "").trim();
+      if (!sql) { fb.className = "fb on no"; fb.innerHTML = "<b>还没写</b>在框里写出 SQL 再提交。"; return; }
+      const miss = (D.must || []).filter((re) => !re.test(sql));
+      const bad = (D.mustNot || []).filter((re) => re.test(sql));
+      const ok = miss.length === 0 && bad.length === 0;
+      let msg = "";
+      if (miss.length) msg += `缺少关键结构（${miss.length} 处）。`;
+      if (bad.length) msg += "用了不该用的写法。";
+      done(ok, ok ? D.why + `<br><br>参考写法：<pre style="margin:8px 0 0">${hl(D.sample)}</pre>` : msg + `<br><br>参考写法：<pre style="margin:8px 0 0">${hl(D.sample)}</pre><br>${D.why}`);
+    };
+  }
+}
+
+/* 启动 */
+renderIndex();
+</script>
+</body>
+</html>
