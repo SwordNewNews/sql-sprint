@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SQL Server 手写笔试 · 突击 2 小时</title>
+<style>
+  :root{color-scheme:light dark;--bg:#fff;--fg:#1c1d21;--muted:#666;--line:#e4e4e8;--code-bg:#f5f6f8;--code-fg:#1c1d21;--accent:#2f6feb;--warn:#b4530a;--ok:#1a7f45}
+  @media (prefers-color-scheme:dark){:root{--bg:#16171a;--fg:#e8e8ea;--muted:#9a9aa2;--line:#2c2e33;--code-bg:#1f2126;--code-fg:#e8e8ea;--accent:#7aa2ff;--warn:#e0a06a;--ok:#6ac48a}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:18px 16px 80px;background:var(--bg);color:var(--fg);font:16px/1.72 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;max-width:820px;margin-inline:auto}
+  h1{font-size:22px;line-height:1.35;margin:0 0 6px}
+  h2{font-size:18px;margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+  h3{font-size:16px;margin:20px 0 6px}
+  p,li{color:var(--fg)}
+  .lead{color:var(--muted);font-size:14px;margin:0 0 18px}
+  code{background:var(--code-bg);color:var(--code-fg);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:14px}
+  pre{background:var(--code-bg);color:var(--code-fg);padding:12px 14px;border-radius:8px;overflow-x:auto;font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:13.5px;line-height:1.6;border:1px solid var(--line)}
+  pre code{background:none;padding:0;font-size:inherit}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:var(--code-bg);font-weight:600}
+  .tip{border-left:3px solid var(--accent);background:var(--code-bg);padding:10px 12px;border-radius:0 8px 8px 0;margin:12px 0;font-size:14.5px}
+  .warn{border-left-color:var(--warn)}
+  .ok{border-left-color:var(--ok)}
+  details{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0;background:var(--code-bg)}
+  summary{cursor:pointer;font-weight:600;color:var(--accent);outline:none}
+  details[open] summary{margin-bottom:8px}
+  .q{font-weight:600;margin:18px 0 6px}
+  .small{font-size:13.5px;color:var(--muted)}
+  ol,ul{padding-left:22px}
+  .cheat td:first-child{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+
+  /* --- 移动端基础修补（自动注入） --- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  a,button,input,select,textarea,summary,[role="button"]{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+
+<h1>SQL Server 手写笔试 · 突击清单</h1>
+<p class="lead">考试明天（周五）下午现场手写，范围：多表增删改查 ／ 自定义报表 ／ 套打。手写考套路，不考记忆量——把下面 5 个骨架默写熟，多数题都能套。</p>
+
+<div class="tip ok">
+<strong>先记这一条：写 SQL 的顺序和读 SQL 的顺序相反。</strong><br>
+写的时候永远按这个顺序落笔，就不会漏条件：<br>
+<code>SELECT … FROM … JOIN … ON … WHERE … GROUP BY … HAVING … ORDER BY …</code>
+</div>
+
+<h2>一、多表查询骨架（最高频）</h2>
+
+<h3>1. 两种连接，只背这两个</h3>
+<pre><code>-- 内连接：两边都有的数据才出来
+SELECT o.OrderNo, c.CustomerName, o.Amount
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId;
+
+-- 左连接：左边全要，右边没有就补 NULL（报表/套打常用）
+SELECT o.OrderNo, c.CustomerName, o.Amount
+FROM Orders o
+LEFT JOIN Customer c ON c.Id = o.CustomerId;</code></pre>
+
+<div class="tip warn">
+手写时把 <code>ON</code> 条件写全 = 拿一半分。多表就一路 <code>JOIN … ON …</code> 叠下去，<strong>别名一定要写</strong>（<code>o.</code> <code>c.</code>），否则阅卷老师看不出你想连哪张表。
+</div>
+
+<h3>2. 三种筛选条件的位置（最容易错）</h3>
+<table>
+<tr><th>条件类型</th><th>写在哪</th><th>例子</th></tr>
+<tr><td>过滤行（原始数据）</td><td><code>WHERE</code></td><td><code>WHERE o.Amount &gt; 1000</code></td></tr>
+<tr><td>过滤分组后的结果</td><td><code>HAVING</code></td><td><code>HAVING SUM(o.Amount) &gt; 10000</code></td></tr>
+<tr><td>左连接后“只要没匹配上的”</td><td><code>WHERE 右表.主键 IS NULL</code></td><td><code>WHERE c.Id IS NULL</code>（找没下过单的客户）</td></tr>
+</table>
+
+<h2>二、增删改（含 ERP 常见的批量写法）</h2>
+
+<pre><code>-- 插入一行
+INSERT INTO Customer (CustomerName, Phone, CreateTime)
+VALUES (N'张三', '13800000000', GETDATE());
+
+-- 插入查询结果（批量导入/结转）
+INSERT INTO OrderLog (OrderId, Action, CreateTime)
+SELECT o.Id, N'结转', GETDATE()
+FROM Orders o
+WHERE o.Status = 1;
+
+-- 带条件的更新
+UPDATE Orders
+SET Status = 2, UpdateTime = GETDATE()
+WHERE Id = 1001;
+
+-- ★ 关联更新（ERP 里改价、改库存必考）
+UPDATE o
+SET o.Amount = o.Qty * p.Price
+FROM Orders o
+JOIN Product p ON p.Id = o.ProductId
+WHERE o.Status = 0;
+
+-- ★ 关联删除
+DELETE o
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE c.Status = 9;
+
+-- 事务：要么全成功，要么全回滚
+BEGIN TRAN;
+UPDATE Account SET Balance = Balance - 100 WHERE Id = 1;
+UPDATE Account SET Balance = Balance + 100 WHERE Id = 2;
+COMMIT TRAN;
+-- 出错时用 ROLLBACK TRAN;</code></pre>
+
+<div class="tip warn">
+<code>UPDATE o SET … FROM Orders o JOIN …</code> 这种「别名写在 UPDATE 上」是 <strong>T-SQL 独有写法</strong>，正好是 SQL Server 实施岗的常见考点，务必记住：<code>UPDATE</code> 后面跟别名，<code>FROM</code> 后面再把表连起来。
+</div>
+
+<h2>三、自定义报表（四件套）</h2>
+
+<h3>1. 分组统计</h3>
+<pre><code>SELECT c.CustomerName,
+       COUNT(o.Id)        AS 订单数,
+       SUM(o.Amount)      AS 总金额,
+       AVG(o.Amount)      AS 平均金额,
+       MAX(o.OrderDate)   AS 最近下单
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE o.OrderDate &gt;= '2026-01-01'
+GROUP BY c.CustomerName
+HAVING SUM(o.Amount) &gt; 10000
+ORDER BY 总金额 DESC;</code></pre>
+
+<div class="tip">背死这句规则：<strong><code>SELECT</code> 里出现的列，要么在 <code>GROUP BY</code> 里，要么被聚合函数包住</strong>。手写时先把 <code>GROUP BY</code> 写好，再回头补 <code>SELECT</code>。</div>
+
+<h3>2. 分段统计（CASE WHEN）</h3>
+<pre><code>SELECT
+  SUM(CASE WHEN Amount &lt; 1000 THEN 1 ELSE 0 END)          AS 小额单数,
+  SUM(CASE WHEN Amount BETWEEN 1000 AND 5000 THEN 1 ELSE 0 END) AS 中额单数,
+  SUM(CASE WHEN Amount &gt; 5000 THEN 1 ELSE 0 END)          AS 大额单数
+FROM Orders;</code></pre>
+
+<h3>3. 排名 / 取每组前 N 条（窗口函数）</h3>
+<pre><code>-- 每个客户金额最高的那一单
+SELECT * FROM (
+  SELECT o.*, c.CustomerName,
+         ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn
+  FROM Orders o JOIN Customer c ON c.Id = o.CustomerId
+) t
+WHERE t.rn = 1;</code></pre>
+
+<h3>4. 子查询 / EXISTS（“没有”“存在”类问题）</h3>
+<pre><code>-- 没下过单的客户（两种写法都对，考试写一种即可）
+SELECT * FROM Customer c
+WHERE NOT EXISTS (SELECT 1 FROM Orders o WHERE o.CustomerId = c.Id);
+
+SELECT * FROM Customer
+WHERE Id NOT IN (SELECT CustomerId FROM Orders WHERE CustomerId IS NOT NULL);</code></pre>
+
+<h2>四、套打（单据取数）</h2>
+
+<p>「套打」在 ERP 里是<strong>把数据填到预印好的单据纸上</strong>（凭证、发票、出库单）。SQL 层面考的不是排版，而是<strong>取数</strong>：一张单据 = 主表 1 行 + 明细 N 行，要一次查全并排好序。</p>
+
+<h3>1. 主表 + 明细一次取出（左连接，主表必须全量）</h3>
+<pre><code>SELECT m.BillNo, m.BillDate, m.CustomerName, m.TotalAmount,
+       d.LineNo, d.ProductName, d.Qty, d.Price, d.Amount
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillNo = 'CK20261126001'
+ORDER BY d.LineNo;</code></pre>
+
+<div class="tip warn">
+为什么必须 <code>LEFT JOIN</code>：没有明细的单据也要打出来（显示空白行）。用 <code>INNER JOIN</code> 会把这类单据整张丢掉——这是“套打”场景最典型的判分点。
+</div>
+
+<h3>2. 把多行明细拼成一行（经典：FOR XML PATH）</h3>
+<pre><code>-- 一张单据一行，明细用逗号拼起来：套打模板常用
+SELECT m.BillNo,
+       STUFF((
+         SELECT ',' + d.ProductName + '×' + CAST(d.Qty AS VARCHAR(10))
+         FROM BillDetail d
+         WHERE d.BillId = m.Id
+         ORDER BY d.LineNo
+         FOR XML PATH(''), TYPE
+       ).value('.', 'NVARCHAR(MAX)'), 1, 1, '') AS 明细
+FROM BillMaster m;</code></pre>
+
+<p class="small">这串长得吓人，但结构固定：<code>STUFF((子查询拼串 FOR XML PATH('')),1,1,'')</code>。记不住全部就写 <code>+ ','</code> 拼串的部分，也比空着强。</p>
+
+<h3>3. 单据统计（表头合计）</h3>
+<pre><code>SELECT m.BillNo, m.BillDate, m.CustomerName,
+       COUNT(d.Id)   AS 明细行数,
+       SUM(d.Qty)    AS 总数量,
+       SUM(d.Amount) AS 总金额
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillDate &gt;= '2026-11-01' AND m.BillDate &lt; '2026-12-01'
+GROUP BY m.BillNo, m.BillDate, m.CustomerName
+ORDER BY m.BillNo;</code></pre>
+
+<h2>五、SQL Server 语法注意（专坑手写）</h2>
+
+<table>
+<tr><th>要做的事</th><th>写法</th></tr>
+<tr><td>取前 N 行</td><td><code>SELECT TOP 10 * FROM Orders ORDER BY Amount DESC</code></td></tr>
+<tr><td>字符串拼接</td><td><code>c.LastName + c.FirstName</code>（数字要先 <code>CAST(x AS VARCHAR)</code>）</td></tr>
+<tr><td>空值替换</td><td><code>ISNULL(Amount, 0)</code>（T-SQL 专有，别写 IFNULL）</td></tr>
+<tr><td>当前时间</td><td><code>GETDATE()</code>（不是 NOW()）</td></tr>
+<tr><td>日期格式化</td><td><code>CONVERT(VARCHAR(10), BillDate, 120)</code> → 2026-11-26</td></tr>
+<tr><td>日期加减</td><td><code>DATEADD(DAY, -7, GETDATE())</code>、<code>DATEDIFF(DAY, a, b)</code></td></tr>
+<tr><td>中文字符串</td><td>前面加 <code>N</code>：<code>N'张三'</code></td></tr>
+<tr><td>表名/列名是关键字</td><td>用方括号：<code>[Order]</code>、<code>[User]</code></td></tr>
+<tr><td>不等于</td><td><code>&lt;&gt;</code>（写 <code>!=</code> 也认）</td></tr>
+<tr><td>判断空值</td><td><code>IS NULL</code> / <code>IS NOT NULL</code>，不能写 <code>= NULL</code></td></tr>
+<tr><td>字符串转数字</td><td><code>CAST(Col AS INT)</code> 或 <code>CONVERT(INT, Col)</code></td></tr>
+</table>
+
+<div class="tip warn">
+三个最常见的丢分点：<br>
+① <code>= NULL</code>（错）→ 必须 <code>IS NULL</code>；<br>
+② <code>SELECT</code> 里有列没进 <code>GROUP BY</code> 也没聚合（错）；<br>
+③ <code>WHERE</code> 里用聚合函数（错）→ 聚合条件放 <code>HAVING</code>。
+</div>
+
+<h2>六、预测题（先自己写，再点开答案）</h2>
+
+<p class="q">1. 查询 2026 年每个客户的下单总数与总金额，只保留总金额超过 1 万元的，按总金额从高到低排序。</p>
+<details><summary>参考答案</summary><pre><code>SELECT c.CustomerName, COUNT(o.Id) AS 订单数, SUM(o.Amount) AS 总金额
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE o.OrderDate &gt;= '2026-01-01' AND o.OrderDate &lt; '2027-01-01'
+GROUP BY c.CustomerName
+HAVING SUM(o.Amount) &gt; 10000
+ORDER BY SUM(o.Amount) DESC;</code></pre></details>
+
+<p class="q">2. 查出没有任何订单的客户。</p>
+<details><summary>参考答案</summary><pre><code>SELECT c.*
+FROM Customer c
+WHERE NOT EXISTS (SELECT 1 FROM Orders o WHERE o.CustomerId = c.Id);</code></pre>
+<p class="small">等价写法：<code>LEFT JOIN Orders o ON o.CustomerId=c.Id WHERE o.Id IS NULL</code>。</p></details>
+
+<p class="q">3. 每个客户金额最高的那一笔订单（只要一条）。</p>
+<details><summary>参考答案</summary><pre><code>SELECT * FROM (
+  SELECT o.*, ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn
+  FROM Orders o
+) t
+WHERE t.rn = 1;</code></pre></details>
+
+<p class="q">4. 把订单按金额分成三段（0–999 / 1000–4999 / 5000 以上），统计各段的订单数量。</p>
+<details><summary>参考答案</summary><pre><code>SELECT
+  SUM(CASE WHEN Amount &lt; 1000 THEN 1 ELSE 0 END) AS 小额,
+  SUM(CASE WHEN Amount &gt;= 1000 AND Amount &lt; 5000 THEN 1 ELSE 0 END) AS 中额,
+  SUM(CASE WHEN Amount &gt;= 5000 THEN 1 ELSE 0 END) AS 大额
+FROM Orders;</code></pre>
+<p class="small">也可以 <code>GROUP BY</code> 一个 CASE 表达式，两种都给分。</p></details>
+
+<p class="q">5. 用订单明细表，把每张单据的商品名拼成一行，用逗号分隔。</p>
+<details><summary>参考答案</summary><pre><code>SELECT m.BillNo,
+       STUFF((SELECT ',' + d.ProductName
+              FROM BillDetail d
+              WHERE d.BillId = m.Id
+              ORDER BY d.LineNo
+              FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, '') AS 商品清单
+FROM BillMaster m;</code></pre></details>
+
+<p class="q">6. 把产品表的单价上调 5%，只调分类为「电子」的产品，并记录修改时间。</p>
+<details><summary>参考答案</summary><pre><code>UPDATE Product
+SET Price = Price * 1.05, UpdateTime = GETDATE()
+WHERE Category = N'电子';</code></pre></details>
+
+<p class="q">7. 库存表按「产品 + 仓库」关联更新：把本月入库数量累加到库存。</p>
+<details><summary>参考答案</summary><pre><code>UPDATE s
+SET s.Qty = s.Qty + i.InQty, s.UpdateTime = GETDATE()
+FROM Stock s
+JOIN Inbound i ON i.ProductId = s.ProductId AND i.WarehouseId = s.WarehouseId
+WHERE i.InDate &gt;= '2026-11-01';</code></pre></details>
+
+<p class="q">8. 删除重复数据，同一手机号只保留 Id 最小的那条。</p>
+<details><summary>参考答案</summary><pre><code>DELETE t FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY Phone ORDER BY Id) AS rn
+  FROM Customer
+) t
+WHERE t.rn &gt; 1;</code></pre></details>
+
+<p class="q">9. 按月份统计销售额，并把 1–12 月转成 12 列（行转列）。</p>
+<details><summary>参考答案</summary><pre><code>SELECT CustomerId,
+  SUM(CASE WHEN MONTH(OrderDate)=1  THEN Amount ELSE 0 END) AS M1,
+  SUM(CASE WHEN MONTH(OrderDate)=2  THEN Amount ELSE 0 END) AS M2,
+  -- … 3 到 11 月同样写法 …
+  SUM(CASE WHEN MONTH(OrderDate)=12 THEN Amount ELSE 0 END) AS M12
+FROM Orders
+WHERE YEAR(OrderDate) = 2026
+GROUP BY CustomerId;</code></pre>
+<p class="small">时间够可以补 PIVOT 写法，不够就用上面这种 CASE 行转列，一样得分。</p></details>
+
+<p class="q">10. 查询每张出库单的表头信息 + 明细行，没有明细的也要显示。</p>
+<details><summary>参考答案</summary><pre><code>SELECT m.BillNo, m.BillDate, m.CustomerName,
+       d.LineNo, d.ProductName, d.Qty, d.Amount
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillType = N'出库'
+ORDER BY m.BillNo, d.LineNo;</code></pre></details>
+
+<p class="q">11. 分页：查订单表第 3 页，每页 20 条，按下单时间倒序。</p>
+<details><summary>参考答案</summary><pre><code>SELECT *
+FROM Orders
+ORDER BY OrderDate DESC
+OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY;</code></pre>
+<p class="small">旧写法也行：<code>SELECT TOP 20 * FROM (SELECT TOP 60 * FROM Orders ORDER BY OrderDate DESC) t ORDER BY OrderDate</code>。</p></details>
+
+<p class="q">12. 转账：A 账户扣 100 给 B，保证要么都成功要么都不生效。</p>
+<details><summary>参考答案</summary><pre><code>BEGIN TRAN;
+UPDATE Account SET Balance = Balance - 100 WHERE Id = 1;
+UPDATE Account SET Balance = Balance + 100 WHERE Id = 2;
+IF @@ERROR &lt;&gt; 0
+  ROLLBACK TRAN;
+ELSE
+  COMMIT TRAN;</code></pre>
+<p class="small">能写出 <code>BEGIN TRAN / COMMIT / ROLLBACK</code> 三个关键字就是得分点。</p></details>
+
+<h2>七、明天临场清单</h2>
+<ol>
+<li><strong>先写 <code>FROM … JOIN … ON</code></strong>，把表连对；再补 <code>WHERE</code>；有聚合就写 <code>GROUP BY</code>；最后回头写 <code>SELECT</code>。这一步顺序能救回大量分数。</li>
+<li><strong>每张表都起别名</strong>，字段前带别名前缀，阅卷老师一眼能看懂。</li>
+<li><strong>不确定的函数就换通用的</strong>：不确定 <code>FORMAT()</code> 就用 <code>CONVERT()</code>；不确定窗口函数就写子查询。宁可笨但正确。</li>
+<li><strong>不会就写思路注释</strong>：<code>-- 思路：先按客户分组求合计，再筛 &gt;10000</code>。手写卷子给分看思路，不只看完整度。</li>
+<li><strong>多表题必检查</strong>：是否该用 <code>LEFT JOIN</code>（主表全量）、是否有 <code>IS NULL</code>、聚合条件是否错放 <code>WHERE</code>。</li>
+<li>写完<strong>从 <code>FROM</code> 往回读一遍</strong>：编号、括号、逗号、<code>END</code>、分号，手写最容易漏。</li>
+</ol>
+
+<p class="small" style="margin-top:32px">—— 练习题先自己写一遍再点答案；写完可以拍照发我，我按笔试标准给你改并指出丢分点。</p>
+
+</body>
+</html>
