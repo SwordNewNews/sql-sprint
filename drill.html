@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SQL 从零到默写 · 8 个句型</title>
+<style>
+  :root{--bg:#0e1116;--panel:#171c24;--panel2:#1e242e;--line:#2b3444;--fg:#e9eef6;--muted:#8b95a6;--accent:#5b8cff;--accent2:#37d6a5;--gold:#ffd166;--bad:#ff7a7a;--code:#0a0d12}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background-image:radial-gradient(900px 420px at 50% -8%,rgba(91,140,255,.15),transparent 62%)}
+  .app{max-width:740px;margin:0 auto;padding:14px 14px 60px}
+  .top{display:flex;gap:8px;margin-bottom:14px}
+  .top button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
+  .top button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  h1{font-size:22px;margin:8px 0 6px;line-height:1.35}
+  h2{font-size:18px;margin:22px 0 8px}
+  p{margin:8px 0}
+  .lead{color:var(--muted);font-size:14.5px}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px;color:#a9c1ff}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:11px;padding:13px;overflow-x:auto;font-family:ui-monospace,Consolas,monospace;font-size:13.5px;line-height:1.7;margin:10px 0}
+  pre code{background:none;padding:0;color:#cfe0ff}
+  .kw{color:#ff9f5a}.str{color:#7ee08a}.cm{color:#5f6b7f}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+  .hook{display:inline-block;font-size:12px;color:var(--gold);background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.3);padding:2px 9px;border-radius:999px;margin-bottom:8px}
+  .why{font-size:14px;color:var(--muted);margin:6px 0 0}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .row button{padding:10px 14px;border-radius:11px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font:inherit;font-size:14px;cursor:pointer}
+  .row button.primary{background:linear-gradient(135deg,var(--accent),#4570e6);border-color:transparent;font-weight:600}
+  .row button.ok{background:rgba(55,214,165,.16);border-color:rgba(55,214,165,.5)}
+  .row button.mid{background:rgba(255,209,102,.14);border-color:rgba(255,209,102,.45)}
+  .row button.no{background:rgba(255,122,122,.12);border-color:rgba(255,122,122,.45)}
+  .hidebox{filter:blur(7px);user-select:none;transition:filter .2s}
+  .hidebox.shown{filter:none}
+  .timer{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+  .progress{height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin:10px 0 16px}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+  .big{font-size:34px;margin:6px 0}
+  .q{border-left:3px solid var(--line);padding:8px 0 8px 12px;margin:12px 0}
+  .q .tag{display:inline-block;font-size:11.5px;color:var(--accent2);border:1px solid rgba(55,214,165,.4);border-radius:999px;padding:1px 8px;margin-right:6px}
+  .note{border-left:3px solid var(--accent);background:rgba(91,140,255,.08);padding:11px 13px;border-radius:0 10px 10px 0;font-size:14px;margin:12px 0}
+  .note.warn{border-left-color:#ff9f5a;background:rgba(255,159,90,.08)}
+  .small{font-size:13.5px;color:var(--muted)}
+  .hidden{display:none}
+
+  /* --- 移动端基础修补（自动注入） --- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  a,button,input,select,textarea,summary,[role="button"]{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <button data-tab="teach" class="on">① 先讲明白</button>
+    <button data-tab="drill">② 默写训练</button>
+    <button data-tab="real">③ 真题对照</button>
+  </div>
+
+  <!-- ================= 讲明白 ================= -->
+  <div id="teach">
+    <h1>从零讲明白：SQL 到底在干什么</h1>
+    <p class="lead">你现在什么都不会也没关系，这一屏只要 5 分钟。</p>
+
+    <div class="card">
+      <h2 style="margin-top:0">一、数据库 = 一堆 Excel 表</h2>
+      <p>一个表就是一张 Excel：<strong>一行是一条记录</strong>（一笔业务），<strong>一列是一个字段</strong>（一个属性）。</p>
+      <p>ERP 里一定有两张表：客户表 <code>Customer</code>、订单表 <code>Orders</code>。</p>
+      <p class="small">订单表里不存客户名字，只存客户编号 <code>CustomerId</code>——因为名字改一次要改一万条订单，太蠢。这就是「关系」。</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">二、SQL = 对表说的一句人话</h2>
+      <p>任何查询都在回答四件事，对应四个关键字：</p>
+      <pre><code><span class="kw">SELECT</span>  我要哪几列      ← 挑列
+<span class="kw">FROM</span>    从哪张表        ← 挑表
+<span class="kw">WHERE</span>   只要哪些行      ← 挑行
+<span class="kw">ORDER BY</span> 怎么排序      ← 排队</code></pre>
+      <p>就这么四句。<code>SELECT * FROM Customer</code> 意思是「客户表所有列、所有行」。先会这个，就入门了。</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">三、为什么要 JOIN</h2>
+      <p>报表要显示「<strong>甲公司 买了 1200</strong>」：名字在客户表，金额在订单表。两张表要合起来看 → 用 <code>JOIN</code>。</p>
+      <p>合起来的粘合剂就是编号：<code>ON 客户.Id = 订单.CustomerId</code>。</p>
+      <div class="note"><strong>一句话记住：</strong>JOIN 就是把两张表按编号对齐，对齐的才拼成一行。</div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">四、为什么要 GROUP BY</h2>
+      <p>订单表是「一行一笔」，但报表要「一行一个客户，显示他总共买了多少」——把多行压成一行，这就是分组。</p>
+      <p>压的时候要算合计，所以有 <code>SUM()</code> <code>COUNT()</code> <code>AVG()</code> 这些「聚合函数」。</p>
+      <div class="note warn"><strong>铁律：</strong>用了聚合函数，<code>SELECT</code> 里没被聚合的列必须写进 <code>GROUP BY</code>，否则报错。</div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">五、增删改：改数据的三个动词</h2>
+      <pre><code><span class="kw">INSERT INTO</span> 表 (列…) <span class="kw">VALUES</span> (值…)   <span class="cm">-- 加</span>
+<span class="kw">UPDATE</span> 表 <span class="kw">SET</span> 列=值 <span class="kw">WHERE</span> 条件       <span class="cm">-- 改</span>
+<span class="kw">DELETE FROM</span> 表 <span class="kw">WHERE</span> 条件        <span class="cm">-- 删</span></code></pre>
+      <p class="small"><code>WHERE</code> 决定改哪几行。忘了写 = 全表遭殃。</p>
+    </div>
+
+    <p class="small" style="margin-top:22px">讲完了。你现在知道了：<strong>挑表 → 挑行 → 挑列 → 排 → （需要合计就分组）→ （需要合表就 JOIN）</strong>。<br>接下来去「② 默写训练」——8 个句型练到闭眼能写，明天就能上考场。</p>
+  </div>
+
+  <!-- ================= 默写训练 ================= -->
+  <div id="drill" class="hidden">
+    <h1>8 个句型 · 默写训练</h1>
+    <p class="lead">先看一遍形状 → 隐藏 → 在纸上默写 → 点开对照 → 自评。三轮下来就是肌肉记忆。</p>
+    <div class="progress"><i id="bar"></i></div>
+    <div id="drillStage"></div>
+  </div>
+
+  <!-- ================= 真题 ================= -->
+  <div id="real" class="hidden">
+    <h1>真题对照 · 全部是这 8 个句型</h1>
+    <p class="lead">题目来自公开面试题库（<a href="https://github.com/jaimin-bariya/Awesome-SQL-Interview">Awesome-SQL-Interview</a>，L0/L1/L2 共 120+ 题），我按 ERP 场景改写。右边标签是「用哪个句型」。</p>
+    <div id="realList"></div>
+    <div class="note">看到这里你应该有信心了：<strong>题目千变万化，句型只有 8 个。</strong>明天考场上先问自己一句「这题属于哪个句型」，然后照 shape 往下写。</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============ 8 个句型 ============ */
+const SHAPES = [
+  {
+    no: 1, name: "单表查询", hook: "选表筛排",
+    say: "从一张表里挑行、挑列、排个序。最基础的送分题。",
+    code: `SELECT OrderNo, Amount
+FROM Orders
+WHERE Amount > 1000
+ORDER BY Amount DESC;`,
+    use: "凡是题目只说「查询…」并且只涉及一张表，就是它。"
+  },
+  {
+    no: 2, name: "两表连接", hook: "连表靠 ON",
+    say: "两张表靠编号对齐，把另一张表的信息取过来。",
+    code: `SELECT o.OrderNo, c.CustomerName, o.Amount
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId;`,
+    use: "题目要同时显示「订单号 + 客户名」这类跨表字段。"
+  },
+  {
+    no: 3, name: "左连接算 0", hook: "左连数 0",
+    say: "左边整张表都要，右边没有就补空。用来算「没有的也显示 0」。",
+    code: `SELECT c.CustomerName, COUNT(o.Id) AS 订单数
+FROM Customer c
+LEFT JOIN Orders o ON o.CustomerId = c.Id
+GROUP BY c.CustomerName;`,
+    use: "出现「所有客户」「没下过单的」「含无明细的单据」——一律 LEFT JOIN + COUNT(右表主键)。"
+  },
+  {
+    no: 4, name: "分组统计", hook: "分组 HAVING",
+    say: "把多行压成一行，算合计，再筛掉不要的组。",
+    code: `SELECT c.CustomerName, SUM(o.Amount) AS 总金额
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE o.OrderDate >= '2026-01-01'
+GROUP BY c.CustomerName
+HAVING SUM(o.Amount) > 10000
+ORDER BY SUM(o.Amount) DESC;`,
+    use: "「按 X 统计 Y」「总共多少」「超过 1 万的」——WHERE 筛行，HAVING 筛组。"
+  },
+  {
+    no: 5, name: "每组取第一", hook: "编号取 1",
+    say: "给每组内部排个号，然后只要第 1 名。",
+    code: `SELECT * FROM (
+  SELECT o.*, ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn
+  FROM Orders o
+) t
+WHERE t.rn = 1;`,
+    use: "「每个客户金额最高的那一单」「每个产品最新一次入库」。"
+  },
+  {
+    no: 6, name: "关联更新 / 删除", hook: "UPDATE 别名",
+    say: "按另一张表的数据来改或删。SQL Server 的招牌写法：别名写在 UPDATE 后面。",
+    code: `UPDATE o
+SET o.Amount = o.Qty * p.Price
+FROM Orders o
+JOIN Product p ON p.Id = o.ProductId
+WHERE o.Status = 0;`,
+    use: "「按产品价格重算订单金额」「删掉已停用客户的所有订单」。"
+  },
+  {
+    no: 7, name: "事务", hook: "BEGIN COMMIT",
+    say: "一组改动要么全成功，要么全不做。",
+    code: `BEGIN TRAN;
+UPDATE Account SET Balance = Balance - 100 WHERE Id = 1;
+UPDATE Account SET Balance = Balance + 100 WHERE Id = 2;
+COMMIT TRAN;
+-- 出错时：ROLLBACK TRAN;`,
+    use: "出现「转账」「保证同时成功」「要么都成功要么都回滚」。"
+  },
+  {
+    no: 8, name: "套打取明细", hook: "套打左连明细",
+    say: "一张单据 = 表头 1 行 + 明细 N 行，用左连接一次取全。",
+    code: `SELECT m.BillNo, m.BillDate, d.LineNo, d.ProductName, d.Qty
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillNo = 'CK20261126001'
+ORDER BY d.LineNo;`,
+    use: "「打印出库单」「单据主表+明细」。没有明细也要显示 → 必须 LEFT JOIN。"
+  }
+];
+
+/* ============ 真题 ============ */
+const REAL = [
+  { q: "查询订单金额大于 1000 的订单号与金额，按金额倒序", s: 1 },
+  { q: "查询金额最高的前 10 笔订单", s: 1 },
+  { q: "查询 2026 年 11 月下的所有订单", s: 1 },
+  { q: "查询每笔订单的订单号、客户名称、金额", s: 2 },
+  { q: "查询每个客户的总下单次数（没下过单的显示 0）", s: 3 },
+  { q: "查出从来没有下过单的客户", s: 3 },
+  { q: "统计每个客户的总金额，只保留超过 1 万的，按金额倒序", s: 4 },
+  { q: "按客户分组统计订单数，只要下过 3 单以上的", s: 4 },
+  { q: "统计每个产品分类的销售总额", s: 4 },
+  { q: "查询每个客户金额最高的那一笔订单", s: 5 },
+  { q: "查询每个产品最新一次入库记录", s: 5 },
+  { q: "按产品价格重新计算未审核订单的金额", s: 6 },
+  { q: "删除已停用客户名下的所有订单", s: 6 },
+  { q: "把某个分类的产品单价统一上调 5%", s: 1 },
+  { q: "写一个转账事务，保证要么都成功要么都不生效", s: 7 },
+  { q: "打印指定单号出库单（表头 + 明细）", s: 8 },
+  { q: "打印所有出库单，没有明细的也要显示", s: 8 },
+  { q: "查询某张单据的所有商品名称，拼成一行", s: 8 }
+];
+
+/* ============ 状态 ============ */
+const $ = (s) => document.querySelector(s);
+const stage = $("#drillStage");
+const bar = $("#bar");
+
+let order = [];
+let idx = 0;
+let score = { ok: 0, mid: 0, no: 0 };
+let timer = null;
+let seconds = 0;
+let revealed = false;
+
+function shuffle(a) {
+  const x = a.slice();
+  for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; }
+  return x;
+}
+
+function startDrill() {
+  order = shuffle(SHAPES.map((_, i) => i));
+  idx = 0; score = { ok: 0, mid: 0, no: 0 };
+  renderDrill();
+}
+
+function renderDrill() {
+  if (idx >= order.length) return renderSummary();
+  const S = SHAPES[order[idx]];
+  revealed = false;
+  seconds = 0;
+  clearInterval(timer);
+  timer = setInterval(() => { seconds += 1; const el = $("#tm"); if (el) el.textContent = seconds + "s"; }, 1000);
+
+  stage.innerHTML = `
+    <div class="card">
+      <div class="hook">第 ${idx + 1} / ${order.length} 个 · 句型 ${S.no} · ${S.name}</div>
+      <h2 style="margin-top:0">先记形状：${S.hook}</h2>
+      <p class="why">${S.say}</p>
+      <div id="shapeBox"><pre><code>${esc(S.code)}</code></pre></div>
+      <p class="small">${S.use}</p>
+      <div class="row">
+        <button class="primary" id="hideBtn">记住了，隐藏 → 我来默写</button>
+        <button id="skipBtn">跳过这个</button>
+      </div>
+    </div>`;
+
+  $("#hideBtn").onclick = () => {
+    $("#shapeBox").innerHTML = `<div style="height:150px;border:1px dashed var(--line);border-radius:11px;display:grid;place-items:center;color:var(--muted);font-size:14px">在纸上默写这个句型…</div>`;
+    $("#hideBtn").remove();
+    $("#skipBtn").remove();
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `<button class="primary" id="doneBtn">我写完了，给我看答案</button><button id="tipBtn">给点提示</button><span class="timer">用时 <b id="tm">0s</b></span>`;
+    stage.querySelector(".card").appendChild(row);
+    $("#doneBtn").onclick = () => reveal(S);
+    $("#tipBtn").onclick = () => { $("#shapeBox").innerHTML = `<div class="note">口诀：<strong>${S.hook}</strong>　——　${S.say}</div>`; };
+  };
+  $("#skipBtn").onclick = () => { score.no += 1; idx += 1; clearInterval(timer); renderDrill(); };
+  updateBar();
+}
+
+function reveal(S) {
+  clearInterval(timer);
+  $("#shapeBox").innerHTML = `<pre><code>${esc(S.code)}</code></pre>`;
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `
+    <button class="ok" data-r="ok">写对了（+1）</button>
+    <button class="mid" data-r="mid">差一点</button>
+    <button class="no" data-r="no">没写出来</button>`;
+  stage.querySelector(".card").appendChild(row);
+  row.querySelectorAll("[data-r]").forEach((b) => {
+    b.onclick = () => {
+      score[b.dataset.r] += 1;
+      idx += 1;
+      renderDrill();
+    };
+  });
+  if ($("#doneBtn")) $("#doneBtn").remove();
+  updateBar();
+}
+
+function updateBar() {
+  bar.style.width = (idx / order.length * 100) + "%";
+}
+
+function renderSummary() {
+  const total = score.ok + score.mid + score.no;
+  const pct = total ? Math.round((score.ok + score.mid * 0.5) / total * 100) : 0;
+  const level = pct >= 85 ? "可以上考场了" : pct >= 60 ? "能写，但会卡壳" : "还得再练一轮";
+  stage.innerHTML = `
+    <div class="card" style="text-align:center">
+      <div class="big">${pct >= 85 ? "🏆" : pct >= 60 ? "💪" : "🔁"}</div>
+      <h2 style="margin:6px 0">${level}</h2>
+      <p class="small">写对 ${score.ok} · 差一点 ${score.mid} · 没写出 ${score.no} · 熟练度 ${pct}%</p>
+      <div class="row" style="justify-content:center">
+        <button class="primary" id="again">再来一轮（打乱顺序）</button>
+        <button id="toReal">看真题对照</button>
+      </div>
+    </div>`;
+  $("#again").onclick = startDrill;
+  $("#toReal").onclick = () => switchTab("real");
+}
+
+/* ============ 渲染真题 ============ */
+function renderReal() {
+  const box = $("#realList");
+  box.innerHTML = REAL.map((r, i) => `
+    <div class="q">
+      <p style="margin:0">${i + 1}. ${r.q}</p>
+      <p class="small" style="margin:2px 0 0"><span class="tag">句型 ${r.s} ${SHAPES[r.s - 1].name}</span>${SHAPES[r.s - 1].hook}</p>
+    </div>`).join("");
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+}
+
+/* ============ Tab ============ */
+function switchTab(name) {
+  ["teach", "drill", "real"].forEach((k) => {
+    $("#" + k).classList.toggle("hidden", k !== name);
+  });
+  document.querySelectorAll(".top button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
+  if (name === "drill" && order.length === 0) startDrill();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+document.querySelectorAll(".top button").forEach((b) => { b.onclick = () => switchTab(b.dataset.tab); });
+
+renderReal();
+</script>
+</body>
+</html>
