@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ea">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="SQL Server 手写笔试冲刺：逐题讲练、默写训练、60 分钟模拟考、表结构手册。纯静态，可离线打开。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SQL 冲刺">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>SQL 冲刺 · 笔试备考</title>
+<style>
+  :root{--bg:#f4f1ea;--card:#fffdf8;--ink:#1c1e25;--muted:#6f7280;--line:#e3ddd0;--indigo:#2f44a3;--indigoSoft:#eaedfb;--green:#0f6b47;--greenSoft:#e6f4ec;--rust:#b0431a;--rustSoft:#fcece3;--gold:#9a6a06;--goldSoft:#fdf3dd}
+  @media (prefers-color-scheme:dark){:root{--bg:#12141a;--card:#1a1d24;--ink:#e9eaef;--muted:#8d93a1;--line:#2a2f39;--indigo:#8fa4ff;--indigoSoft:#1d2337;--green:#6fd3a5;--greenSoft:#152420;--rust:#f0a179;--rustSoft:#2a1d16;--gold:#ffd07a;--goldSoft:#2a2317}}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.7 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background-image:radial-gradient(900px 400px at 50% -10%,color-mix(in srgb,var(--indigo) 10%,transparent),transparent 60%)}
+  .wrap{max-width:700px;margin:0 auto;padding:28px 18px 60px}
+  .kick{font-size:12px;letter-spacing:.24em;color:var(--muted)}
+  h1{font-family:Georgia,"Songti SC",serif;font-size:27px;line-height:1.3;margin:8px 0 8px}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 22px}
+  .primary-card{display:block;text-decoration:none;color:#fff;background:linear-gradient(135deg,#4358c4,#2f44a3);border-radius:20px;padding:22px 20px;margin-bottom:18px;box-shadow:0 14px 34px -16px rgba(47,68,163,.8)}
+  .primary-card b{display:block;font-size:20px;margin-bottom:4px}
+  .primary-card span{font-size:13.5px;opacity:.9}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  a.tile{display:block;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 14px;transition:transform .08s}
+  a.tile:active{transform:scale(.985)}
+  a.tile b{display:block;font-size:15.5px;margin-bottom:3px}
+  a.tile span{font-size:12.5px;color:var(--muted);line-height:1.5;display:block}
+  a.tile .ic{font-size:20px;display:block;margin-bottom:6px}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;margin-bottom:7px}
+  .t-blue{background:var(--indigoSoft);color:var(--indigo)}
+  .t-green{background:var(--greenSoft);color:var(--green)}
+  .t-rust{background:var(--rustSoft);color:var(--rust)}
+  .t-gold{background:var(--goldSoft);color:var(--gold)}
+  .note{margin-top:22px;border-left:3px solid var(--indigo);background:var(--card);border-radius:0 12px 12px 0;padding:12px 14px;font-size:13.5px;color:var(--muted)}
+  .note b{color:var(--ink)}
+  footer{margin-top:28px;font-size:12.5px;color:var(--muted);text-align:center;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kick">SQL SERVER · 手写笔试</div>
+  <h1>SQL 冲刺</h1>
+  <p class="sub">10 道题逐题讲练 · 8 个句型默写 · 60 分钟模拟考。<br>纯静态页面，打开即用，不联网也能跑。</p>
+
+  <a class="primary-card" href="app.html">
+    <b>从主应用开始 →</b>
+    <span>学习 / 练习 / 模拟考 / 速查卡，四合一，进度存在本机</span>
+  </a>
+
+  <div class="grid">
+    <a class="tile" href="paper.html">
+      <span class="tag t-rust">打印</span>
+      <span class="ic">📝</span>
+      <b>手写模拟卷</b>
+      <span>空白卷 + 判分点，打印出来做</span>
+    </a>
+    <a class="tile" href="schema.html">
+      <span class="tag t-blue">基础</span>
+      <span class="ic">🗂️</span>
+      <b>表与字段手册</b>
+      <span>换名字也认得出：三种表角色 + 20 条字段对照</span>
+    </a>
+    <a class="tile" href="coach.html">
+      <span class="tag t-green">引导</span>
+      <span class="ic">🧑‍🏫</span>
+      <b>写码教练</b>
+      <span>点一下写一句，代码长在屏幕上</span>
+    </a>
+    <a class="tile" href="drill.html">
+      <span class="tag t-green">手感</span>
+      <span class="ic">🔁</span>
+      <b>默写训练</b>
+      <span>8 个句型，给口诀不给答案</span>
+    </a>
+    <a class="tile" href="exam.html">
+      <span class="tag t-rust">自测</span>
+      <span class="ic">📄</span>
+      <b>带解析试卷</b>
+      <span>10 题带逐条讲解和判分点</span>
+    </a>
+    <a class="tile" href="class.html">
+      <span class="tag t-gold">讲义</span>
+      <span class="ic">📖</span>
+      <b>完整讲义</b>
+      <span>8 节课，每节 2 分钟</span>
+    </a>
+    <a class="tile" href="study.html">
+      <span class="tag t-gold">速查</span>
+      <span class="ic">⚡</span>
+      <b>考前速查表</b>
+      <span>纯模板，考前 10 分钟看</span>
+    </a>
+    <a class="tile" href="game.html">
+      <span class="tag t-green">换脑</span>
+      <span class="ic">🎮</span>
+      <b>闯关游戏</b>
+      <span>12 关，有经验值和连击</span>
+    </a>
+  </div>
+
+  <div class="note">
+    <b>建议顺序：</b>表结构手册 → 主应用（学 → 练 → 考）→ 打印空白卷手写一遍。<br>
+    <b>进度只存在这台设备的浏览器里</b>，不上传任何服务器；清缓存会丢失。
+  </div>
+
+  <footer>
+    覆盖 多表增删改查 · 自定义报表 · 套打 ｜ 纯静态 · 无外部依赖<br>
+    打开 <b>app.html</b> 开始
+  </footer>
+</div>
+</body>
+</html>
