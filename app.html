@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ea">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="SQL Server 手写笔试冲刺：10 道真题逐题讲、8 个句型默写、60 分钟模拟考。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SQL 冲刺">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>SQL 冲刺 · 今晚到明天</title>
+<style>
+  :root{
+    --bg:#f4f1ea;--card:#fffdf8;--card2:#faf7f0;--ink:#1c1e25;--ink2:#4a4d59;--muted:#7c7f8c;
+    --line:#e3ddd0;--line2:#cec6b5;
+    --indigo:#2f44a3;--indigo2:#4358c4;--indigoSoft:#eaedfb;
+    --rust:#b0431a;--rustSoft:#fcece3;
+    --green:#0f6b47;--greenSoft:#e6f4ec;
+    --gold:#9a6a06;--goldSoft:#fdf3dd;
+    --code:#1a1e26;--codeInk:#e7edf8;
+    --shadow:0 1px 2px rgba(28,30,37,.05),0 8px 24px -12px rgba(28,30,37,.18);
+    --r-sm:10px;--r-md:14px;--r-lg:20px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#12141a;--card:#1a1d24;--card2:#20242c;--ink:#e9eaef;--ink2:#c3c6d0;--muted:#8d93a1;
+      --line:#2a2f39;--line2:#3a4150;--indigo:#8fa4ff;--indigo2:#a8b8ff;--indigoSoft:#1d2337;
+      --rust:#f0a179;--rustSoft:#2a1d16;--green:#6fd3a5;--greenSoft:#152420;--gold:#ffd07a;--goldSoft:#2a2317;
+      --code:#0d1016;--codeInk:#e7edf8;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6)}
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.75 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+
+  /* ============ 顶栏 ============ */
+  header{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .hd{max-width:720px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+  .ring{position:relative;flex:0 0 42px;width:42px;height:42px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--indigo)}
+  .hd .txt{flex:1;min-width:0}
+  .hd .t1{font-size:15px;font-weight:750;letter-spacing:.01em}
+  .hd .t2{font-size:12px;color:var(--muted);margin-top:1px}
+  .streak{flex:0 0 auto;font-size:12px;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);background:var(--goldSoft);padding:3px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
+
+  /* ============ 视图容器 ============ */
+  main{padding-top:16px}
+  .view{animation:fade .26s ease-out}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .schema{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 13px;margin:12px 0}
+  .schema-h{font-size:11.5px;letter-spacing:.06em;color:var(--muted);margin-bottom:9px;font-weight:650}
+  .schema-t{margin-bottom:10px}
+  .schema-t:last-child{margin-bottom:0}
+  .schema-n{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+  .schema-n b{font-family:ui-monospace,Consolas,monospace;font-size:14px;color:var(--indigo)}
+  .schema-n span{font-size:12px;color:var(--muted)}
+  .schema-f{display:flex;align-items:baseline;gap:8px;font-size:12.5px;line-height:1.9;padding-left:2px}
+  .schema-f code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--ink);min-width:104px}
+  .schema-f i{font-style:normal;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--muted);min-width:96px}
+  .schema-f em{font-style:normal;color:var(--ink2)}
+
+  /* ============ 通用卡片 ============ */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;margin:0 0 14px;box-shadow:var(--shadow)}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:.06em;padding:3px 10px;border-radius:999px;margin-bottom:12px;font-weight:650}
+  .b-learn{background:var(--indigoSoft);color:var(--indigo);border:1px solid color-mix(in srgb,var(--indigo) 32%,transparent)}
+  .b-quiz{background:var(--rustSoft);color:var(--rust);border:1px solid color-mix(in srgb,var(--rust) 30%,transparent)}
+  .b-ans{background:var(--greenSoft);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 30%,transparent)}
+  .b-gold{background:var(--goldSoft);color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 34%,transparent)}
+  h2{font-size:19px;line-height:1.42;margin:0 0 8px;letter-spacing:-.01em}
+  h3{font-size:15px;margin:18px 0 6px;color:var(--ink2);letter-spacing:.02em}
+  p{margin:8px 0}
+  .lead{color:var(--muted);font-size:14.5px;margin:0 0 12px}
+  .small{font-size:13px;color:var(--muted)}
+  code.i{background:var(--card2);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
+
+  /* ============ 步骤条 ============ */
+  .steps{display:flex;gap:6px;margin:0 0 14px}
+  .steps span{flex:1;text-align:center;font-size:11.5px;padding:6px 0;border-radius:9px;border:1px solid var(--line2);color:var(--muted);font-weight:600}
+  .steps span.on{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .steps span.done{background:var(--greenSoft);border-color:var(--green);color:var(--green)}
+
+  /* ============ 列表 ============ */
+  ul.rules{margin:6px 0;padding-left:19px}
+  ul.rules li{margin:7px 0;font-size:15.5px}
+  ul.rules li b{color:var(--indigo)}
+  pre{background:var(--code);color:var(--codeInk);border-radius:var(--r-md);padding:14px;overflow-x:auto;
+    font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:13.5px;line-height:1.8;margin:10px 0}
+  pre .kw{color:#ffb27a;font-weight:650}
+  pre .fn{color:#8fbcff}
+  pre .st{color:#96e6a8}
+  pre .cm{color:#77839a}
+  .signals{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .signals span{font-size:12.5px;padding:4px 10px;border-radius:8px;background:var(--card2);border:1px dashed var(--line2);color:var(--muted)}
+  .signals span i{color:var(--indigo);font-style:normal;font-weight:700}
+
+  /* ============ 按钮 ============ */
+  .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  button{font:inherit;font-size:15.5px;font-weight:650;padding:14px 16px;border-radius:var(--r-md);border:1px solid var(--line2);
+    background:var(--card);color:var(--ink);cursor:pointer;transition:transform .08s,filter .2s}
+  button:active{transform:scale(.985)}
+  button.primary{background:linear-gradient(135deg,var(--indigo2),var(--indigo));border-color:transparent;color:#fff;flex:1;box-shadow:0 8px 20px -10px color-mix(in srgb,var(--indigo) 70%,transparent)}
+  button.ghost{background:transparent;color:var(--muted);font-weight:500}
+  button.ok{background:var(--greenSoft);border-color:var(--green);color:var(--green)}
+  button.mid{background:var(--goldSoft);border-color:var(--gold);color:var(--gold)}
+  button.bad{background:var(--rustSoft);border-color:var(--rust);color:var(--rust)}
+
+  /* ============ 反馈 ============ */
+  .judge{display:flex;gap:7px;flex-wrap:wrap;font-size:12px;margin:10px 0}
+  .judge span{padding:3px 9px;border-radius:7px;background:var(--greenSoft);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 26%,transparent)}
+  .trap{background:var(--rustSoft);border:1px solid color-mix(in srgb,var(--rust) 26%,transparent);border-radius:var(--r-sm);padding:11px 13px;font-size:13.5px;margin:10px 0}
+  .trap b{color:var(--rust)}
+  .memo{background:var(--indigoSoft);border-radius:var(--r-sm);padding:12px 13px;font-size:14.5px;margin:10px 0}
+  .memo b{color:var(--indigo)}
+  .note{border-left:3px solid var(--indigo);background:var(--indigoSoft);border-radius:0 10px 10px 0;padding:11px 13px;font-size:14px;margin:12px 0}
+  .note.warn{border-left-color:var(--rust);background:var(--rustSoft)}
+
+  /* ============ 题号条 ============ */
+  .qnums{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .qnums button{width:32px;height:32px;padding:0;border-radius:9px;font-size:13px;font-weight:600;color:var(--muted);background:var(--card);border:1px solid var(--line2)}
+  .qnums button.cur{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .qnums button.done{background:var(--greenSoft);border-color:var(--green);color:var(--green)}
+  .qnums button.cur.done{background:var(--indigo);border-color:var(--indigo);color:#fff}
+
+  /* ============ 输入 ============ */
+  textarea{width:100%;min-height:96px;margin-top:12px;font:inherit;font-family:ui-monospace,Consolas,monospace;font-size:16px;
+    padding:12px;border-radius:var(--r-md);border:1px solid var(--line2);background:var(--card2);color:var(--ink);resize:vertical}
+
+  /* ============ 练习卡 ============ */
+  .shape{border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;margin:9px 0;background:var(--card);
+    display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s,transform .08s}
+  .shape:active{transform:scale(.995)}
+  .shape .n{flex:0 0 28px;height:28px;border-radius:9px;background:var(--indigoSoft);color:var(--indigo);display:grid;place-items:center;font-size:12.5px;font-weight:750}
+  .shape .t{flex:1;min-width:0}
+  .shape .t b{display:block;font-size:15px}
+  .shape .t i{font-style:normal;font-size:12.5px;color:var(--muted)}
+  .shape .st{font-size:16px}
+  .shape.ok{border-color:var(--green);background:var(--greenSoft)}
+  .shape.no{border-color:var(--rust);background:var(--rustSoft)}
+
+  /* ============ 底部导航 ============ */
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:color-mix(in srgb,var(--bg) 94%,transparent);
+    backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+  nav .in{max-width:720px;margin:0 auto;display:flex}
+  nav button{flex:1;background:none;border:0;padding:6px 0 4px;display:flex;flex-direction:column;align-items:center;gap:2px;
+    color:var(--muted);font-size:11.5px;font-weight:600;box-shadow:none}
+  nav button .ic{font-size:19px;line-height:1.2;filter:grayscale(1) opacity(.55);transition:filter .2s,transform .2s}
+  nav button.on{color:var(--indigo)}
+  nav button.on .ic{filter:none;transform:translateY(-1px)}
+
+  /* ============ 完成页 ============ */
+  .done{text-align:center;padding:28px 18px}
+  .done .big{font-size:46px;line-height:1}
+  .done h2{margin:10px 0 6px}
+  .done p{color:var(--muted);font-size:14px}
+
+  /* 计时 */
+  .timer{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);border:1px solid var(--line2);border-radius:8px;padding:3px 9px}
+  .timer.hot{color:var(--rust);border-color:var(--rust)}
+
+  /* --- 移动端基础修补（自动注入） --- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  a,button,input,select,textarea,summary,[role="button"]{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+<noscript>
+  <div style="padding:24px;font:16px/1.8 system-ui,sans-serif">
+    <h1>需要开启 JavaScript</h1>
+    <p>这个页面是纯前端应用，所有题目和进度都在你手机本地运行。请在浏览器设置里允许本站运行 JavaScript 后刷新。</p>
+    <p>如果只是想看题目和答案，可以直接打开 <a href="study.html">速查表</a> 或 <a href="schema.html">表结构手册</a>（这两个不需要 JS）。</p>
+  </div>
+</noscript>
+
+<header>
+  <div class="hd">
+    <div class="ring">
+      <svg width="42" height="42"><circle cx="21" cy="21" r="17" fill="none" stroke="var(--line)" stroke-width="4"/>
+        <circle id="ringArc" cx="21" cy="21" r="17" fill="none" stroke="var(--indigo)" stroke-width="4"
+          stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="106.8" style="transition:stroke-dashoffset .5s"/></svg>
+      <div class="pct" id="ringPct">0%</div>
+    </div>
+    <div class="txt">
+      <div class="t1" id="hdTitle">SQL 冲刺</div>
+      <div class="t2" id="hdSub">今晚 2 小时 · 明天下午笔试</div>
+    </div>
+    <div class="streak" id="hdStreak">🔥 0 连对</div>
+  </div>
+</header>
+
+<main class="wrap" id="view"></main>
+
+<nav><div class="in">
+  <button data-tab="learn" class="on"><span class="ic">📖</span>学</button>
+  <button data-tab="drill"><span class="ic">🔁</span>练</button>
+  <button data-tab="exam"><span class="ic">📝</span>考</button>
+  <button data-tab="card"><span class="ic">🎴</span>卡</button>
+</div></nav>
+
+<script>
+"use strict";
+
+/* ==================================================================
+   数据：10 题（考点严格对应 HR 说的 多表增删改查 / 自定义报表 / 套打）
+   ================================================================== */
+const PART = { dml: "一、多表增删改查", rpt: "二、自定义报表", print: "三、套打取数", theo: "四、概念简答" };
+
+const QS = [
+  { id: 1, part: "dml", key: "单表查询", stars: 2, points: 10,
+    stem: "查询 2026 年 11 月下单、且金额大于 2000 的订单，显示订单号、金额、下单日期，按金额从高到低排列。",
+    teach: {
+      t: "一条查询 = 选表筛排",
+      lead: "SQL 只有四个动作，任何查询都是它们的组合。",
+      rules: ["<b>SELECT</b> 挑列", "<b>FROM</b> 挑表", "<b>WHERE</b> 筛行", "<b>ORDER BY</b> 排序"],
+      code: "SELECT 列1, 列2\nFROM 表\nWHERE 条件\nORDER BY 列 DESC;",
+      tip: "日期用 <code class='i'>&gt;= 月初 AND &lt; 下月初</code>，比 BETWEEN 稳。",
+      sig: ["查询", "列出", "显示", "找出"]
+    },
+    code: "SELECT OrderNo, Amount, OrderDate\nFROM Orders\nWHERE Amount > 2000\n  AND OrderDate >= '2026-11-01'\n  AND OrderDate < '2026-12-01'\nORDER BY Amount DESC;",
+    why: ["只要三列，不写 *", "两个条件用 AND 连；日期用区间不用等号", "DESC 是从大到小"],
+    judge: ["日期区间 5", "排序 3", "字段 2"],
+    trap: "写 <code class='i'>OrderDate = '2026-11'</code> 查不到数据——日期型和月份字符串不能比。",
+    memo: "顺序背死：<b>选 → 表 → 筛 → 排</b>。"
+  },
+  { id: 2, part: "dml", key: "两表连接", stars: 2, points: 10,
+    stem: "查询每笔订单的订单号、客户名称、订单金额（订单表只存客户编号，客户名称在客户表）。",
+    teach: {
+      t: "两张表靠编号对上",
+      lead: "名字只存一份在客户表，订单表只存编号——这就是「关系」。",
+      rules: ["桥梁是 <b>主键 = 外键</b>：客户.Id ↔ 订单.CustomerId", "<b>ON</b> 写的就是这座桥", "两表都有 Id，<b>必须起别名</b>"],
+      code: "SELECT o.列, c.列\nFROM Orders o\nJOIN Customer c\n  ON c.Id = o.CustomerId;",
+      tip: "读法：「客户的 Id 等于订单里的 CustomerId」。念顺了就不会写反。",
+      sig: ["要显示另一张表的字段", "订单号 + 客户名"]
+    },
+    code: "SELECT o.OrderNo, c.CustomerName, o.Amount\nFROM Orders o\nJOIN Customer c ON c.Id = o.CustomerId;",
+    why: ["从订单表出发（主视角是每笔订单）", "ON 用 Id 对上 CustomerId", "字段带别名前缀"],
+    judge: ["ON 条件 5", "别名 3", "字段 2"],
+    trap: "写 <code class='i'>ON c.Id = o.Id</code>：不报错，但结果全错，最难发现。",
+    memo: "从「谁」出发就把谁写 FROM；要谁的资料就把谁 JOIN 进来。"
+  },
+  { id: 3, part: "dml", key: "LEFT JOIN", stars: 3, points: 12,
+    stem: "统计每个客户的订单数量，没有下过单的客户也要显示，数量为 0。",
+    teach: {
+      t: "为什么「没下过单的人」最难写",
+      lead: "内连接只留两边都有的行；左连接保留左边全部，右边没有就补空。",
+      rules: ["看到 <b>「所有」「没有…的」</b> → 左连接", "<b>必须全出现的表放左边</b>", "数数量用 <b>COUNT(右表主键)</b> 而非 COUNT(*)"],
+      code: "-- 左边全保留\nFROM 左表 a\nLEFT JOIN 右表 b ON b.外键 = a.Id\n-- 数右表主键才得 0\nCOUNT(b.Id)",
+      tip: "类比：<b>点名册</b>——没交作业的人名字还在，后面写 0。",
+      sig: ["所有", "每个…都", "没有…的", "含无明细"]
+    },
+    code: "SELECT c.CustomerName, COUNT(o.Id) AS 订单数\nFROM Customer c\nLEFT JOIN Orders o ON o.CustomerId = c.Id\nGROUP BY c.CustomerName;",
+    why: ["客户要全出现 → Customer 放左", "COUNT(o.Id) 不数空值 → 0", "用了聚合要 GROUP BY"],
+    judge: ["LEFT JOIN 7", "COUNT(o.Id) 5"],
+    trap: "用 <code class='i'>JOIN</code>：没下单的客户整行被扔掉——正好是题目要的那部分人。",
+    memo: "口诀 <b>左连数 0</b>：左表全留 + 数右表主键 + 结果是 0。"
+  },
+  { id: 4, part: "dml", key: "关联更新", stars: 3, points: 8,
+    stem: "产品价格调整后，把未审核（Status = 0）订单的金额重算为：数量 × 产品表当前单价。",
+    teach: {
+      t: "照着另一张表批量改",
+      lead: "单表改数直接 UPDATE；要按另一张表的数据改，就把那张表 JOIN 进来。",
+      rules: ["SQL Server 招牌写法：<b>UPDATE 后面跟别名</b>", "表在 <b>FROM</b> 里连", "SET 里可引用 JOIN 表的列", "WHERE 限定行，<b>别漏</b>"],
+      code: "UPDATE 别名\nSET 别名.列 = 表.列\nFROM 表 别名\nJOIN 另一张表 ON ...\nWHERE 条件;",
+      tip: "删除同形：<code class='i'>DELETE 别名 FROM 表 别名 JOIN ... WHERE ...</code>。",
+      sig: ["按…重算", "批量修改", "删除…的"]
+    },
+    code: "UPDATE o\nSET o.Amount = o.Qty * p.Price\nFROM Orders o\nJOIN Product p ON p.Id = o.ProductId\nWHERE o.Status = 0;",
+    why: ["UPDATE o —— 改订单表", "SET 用 p.Price（来自产品表）", "WHERE 只改未审核"],
+    judge: ["UPDATE 别名 3", "FROM/JOIN 3", "SET 2"],
+    trap: "写 <code class='i'>UPDATE Orders SET Amount = Qty * Price</code>：订单表没有 Price 列，直接报错。",
+    memo: "形状：<b>UPDATE 别名 → SET → FROM 表 别名 JOIN → WHERE</b>。"
+  },
+  { id: 5, part: "rpt", key: "GROUP BY + HAVING", stars: 3, points: 10,
+    stem: "统计 2026 年每个客户的下单次数与总金额，只保留总金额超过 10000 的客户，按总金额从高到低排列。",
+    teach: {
+      t: "把多行压成一行来算账",
+      lead: "订单表一行一笔，报表要一行一个客户——这就是分组。",
+      rules: ["算合计用 <b>SUM / COUNT / AVG</b>", "按谁分组就 <b>GROUP BY 谁</b>", "SELECT 的列要么分组要么被聚合", "筛行用 <b>WHERE</b>，筛组用 <b>HAVING</b>"],
+      code: "SELECT 分组列, SUM(数值) AS 合计\nFROM 表\nWHERE 行条件\nGROUP BY 分组列\nHAVING SUM(数值) > 阈值\nORDER BY SUM(数值) DESC;",
+      tip: "位置就说明分工：WHERE 在 GROUP BY 前，HAVING 在之后。",
+      sig: ["总共", "合计", "几单", "平均", "超过 X"]
+    },
+    code: "SELECT c.CustomerName, COUNT(o.Id) AS 下单次数, SUM(o.Amount) AS 总金额\nFROM Orders o\nJOIN Customer c ON c.Id = o.CustomerId\nWHERE o.OrderDate >= '2026-01-01' AND o.OrderDate < '2027-01-01'\nGROUP BY c.CustomerName\nHAVING SUM(o.Amount) > 10000\nORDER BY SUM(o.Amount) DESC;",
+    why: ["时间范围属于「行」→ WHERE", "总额超 1 万属于「组」→ HAVING", "客户名在 GROUP BY，数字被聚合"],
+    judge: ["分组 4", "WHERE 3", "HAVING 3"],
+    trap: "把 <code class='i'>SUM(o.Amount) &gt; 10000</code> 写进 WHERE——聚合函数不能在 WHERE，语法错误。",
+    memo: "<b>WHERE 筛票，HAVING 筛信封。</b>"
+  },
+  { id: 6, part: "rpt", key: "行转列", stars: 3, points: 10,
+    stem: "按客户统计 1–12 月各月的订单金额，做成「一行一个客户、12 列一个月」的横向报表。",
+    teach: {
+      t: "横着的报表怎么做出来",
+      lead: "库里是纵向的「一行一条记录」，报表要横向的「一行一个客户、12 列月份」。",
+      rules: ["通用套路 <b>SUM(CASE WHEN 条件 THEN 数值 ELSE 0 END)</b>", "每个要变列的维度写一个 CASE", "不满足条件给 0", "最后按客户 GROUP BY"],
+      code: "SELECT 分组列,\n  SUM(CASE WHEN 月 = 1 THEN 金额 ELSE 0 END) AS M1,\n  SUM(CASE WHEN 月 = 2 THEN 金额 ELSE 0 END) AS M2\nFROM 表 GROUP BY 分组列;",
+      tip: "写不完 12 列就写 3 列 + 注明「其余同理」，结构对按比例给分。",
+      sig: ["一行一个 X，N 列一个 Y", "横向 / 矩阵报表"]
+    },
+    code: "SELECT c.CustomerName,\n  SUM(CASE WHEN MONTH(o.OrderDate) = 1  THEN o.Amount ELSE 0 END) AS M1,\n  SUM(CASE WHEN MONTH(o.OrderDate) = 2  THEN o.Amount ELSE 0 END) AS M2,\n  -- …… 3 到 11 月同样写法 ……\n  SUM(CASE WHEN MONTH(o.OrderDate) = 12 THEN o.Amount ELSE 0 END) AS M12\nFROM Orders o\nJOIN Customer c ON c.Id = o.CustomerId\nWHERE YEAR(o.OrderDate) = 2026\nGROUP BY c.CustomerName;",
+    why: ["每月一个 SUM(CASE WHEN MONTH = n ...)", "外层 GROUP BY 客户名", "年份条件放 WHERE"],
+    judge: ["CASE 结构 5", "列数 3", "分组 2"],
+    trap: "用 <code class='i'>SUM(金额) GROUP BY 月份</code>：出来是 12 <b>行</b>，题目要 12 <b>列</b>。",
+    memo: "万能模具：<b>SUM + CASE</b>，凡是把维度摊成列都用它。"
+  },
+  { id: 7, part: "rpt", key: "每组取第一", stars: 3, points: 10,
+    stem: "查询每个客户金额最高的那一笔订单（显示客户名、订单号、金额）。",
+    teach: {
+      t: "每个班的第一名怎么找",
+      lead: "不是全校第一。必须先在班内排名，再举手。",
+      rules: ["<b>ROW_NUMBER() OVER (PARTITION BY 分组列 ORDER BY 排序列)</b>", "PARTITION BY = 分班；ORDER BY = 班内排队", "名次在<b>子查询</b>里生成，外层筛 <b>rn = 1</b>"],
+      code: "SELECT * FROM (\n  SELECT 列..., ROW_NUMBER() OVER (\n    PARTITION BY 分组列 ORDER BY 排序列 DESC) AS rn\n  FROM 表\n) t\nWHERE t.rn = 1;",
+      tip: "不会窗口函数就写子查询版（金额 = 该客户最大金额），也能拿大半分。",
+      sig: ["每个…最高", "每个…最新", "每个…第一"]
+    },
+    code: "SELECT t.CustomerName, t.OrderNo, t.Amount FROM (\n  SELECT c.CustomerName, o.OrderNo, o.Amount,\n         ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn\n  FROM Orders o\n  JOIN Customer c ON c.Id = o.CustomerId\n) t\nWHERE t.rn = 1;",
+    why: ["PARTITION BY 客户，ORDER BY 金额 DESC", "包成子查询别名 t", "外层 WHERE t.rn = 1"],
+    judge: ["窗口函数 5", "子查询 3", "rn=1 2"],
+    trap: "<code class='i'>MAX(Amount) GROUP BY CustomerId</code> 只能拿到金额，订单号拿不到。",
+    memo: "四个字：<b>分班、排队、编号、举手</b>。"
+  },
+  { id: 8, part: "print", key: "套打取数", stars: 2, points: 10,
+    stem: "打印单据号 CK20261126001 的出库单：显示单号、日期、客户、明细行号、商品名称、数量，按明细行号排序。",
+    teach: {
+      t: "一张单据 = 表头 1 行 + 明细 N 行",
+      lead: "套打是把数据填进预印好的单据纸。SQL 考的是「一次取全」。",
+      rules: ["主表 <b>BillMaster</b> + 明细 <b>BillDetail</b>", "靠 <b>BillId</b> 关联", "必须 <b>ORDER BY 行号</b>", "LEFT JOIN 更稳（明细缺失也能打表头）"],
+      code: "SELECT m.单号, m.日期, d.行号, d.商品, d.数量\nFROM BillMaster m\nLEFT JOIN BillDetail d ON d.BillId = m.Id\nWHERE m.BillNo = '单号'\nORDER BY d.LineNo;",
+      tip: "类比：<b>一张表单</b>，上面填一遍，下面能填很多行。",
+      sig: ["单据", "打印", "表头 + 明细"]
+    },
+    code: "SELECT m.BillNo, m.BillDate, m.CustomerName,\n       d.LineNo, d.ProductName, d.Qty\nFROM BillMaster m\nLEFT JOIN BillDetail d ON d.BillId = m.Id\nWHERE m.BillNo = 'CK20261126001'\nORDER BY d.LineNo;",
+    why: ["主表 LEFT JOIN 明细", "WHERE 指定单号", "ORDER BY 行号"],
+    judge: ["LEFT JOIN 5", "条件 3", "排序 2"],
+    trap: "漏 <code class='i'>ORDER BY d.LineNo</code>：数据对，但打印顺序乱，单据不能用。",
+    memo: "口诀 <b>套打左连明细</b>：主表在左，明细靠 JOIN，行号必须排。"
+  },
+  { id: 9, part: "print", key: "LEFT JOIN 判分点", stars: 3, points: 10,
+    stem: "查询所有出库单的单号、日期、客户、明细行号、商品、数量，没有明细的单据也要显示。",
+    teach: {
+      t: "这道题几乎只在考一件事",
+      lead: "「没有明细也要显示」——套打题最常见的判分点。",
+      rules: ["主表必须全量 → <b>BillMaster 放左，LEFT JOIN</b>", "写成 JOIN 不报错，但空明细单据<b>整张消失</b>", "中文类型加 <b>N</b>", "排序两级：单号 + 行号"],
+      code: "FROM BillMaster m\nLEFT JOIN BillDetail d ON d.BillId = m.Id\nWHERE m.BillType = N'出库'\nORDER BY m.BillNo, d.LineNo;",
+      tip: "问自己：哪张表一个都不能少？那张表必须在左边。",
+      sig: ["所有出库单", "含无明细"]
+    },
+    code: "SELECT m.BillNo, m.BillDate, m.CustomerName,\n       d.LineNo, d.ProductName, d.Qty\nFROM BillMaster m\nLEFT JOIN BillDetail d ON d.BillId = m.Id\nWHERE m.BillType = N'出库'\nORDER BY m.BillNo, d.LineNo;",
+    why: ["LEFT JOIN 是核心得分点（9 分）", "类型条件 N'出库'", "两级排序"],
+    judge: ["LEFT JOIN 9", "条件 1"],
+    trap: "写 JOIN：结果看着正常，但空明细单据全丢——扣掉绝大部分分。",
+    memo: "看到「所有 / 没有…也要」→ 手先写 <b>LEFT JOIN</b>。"
+  },
+  { id: 10, part: "theo", key: "概念简答", stars: 1, points: 10,
+    stem: "简述 WHERE 与 HAVING 的区别；并写出事务的三个关键字。",
+    teach: {
+      t: "两道必背的概念题",
+      lead: "送分题，写对术语就行。",
+      rules: ["<b>WHERE</b>：分组前筛行，<b>不能用聚合</b>", "<b>HAVING</b>：分组后筛组，<b>能用聚合</b>", "事务三词：<b>BEGIN TRAN / COMMIT TRAN / ROLLBACK TRAN</b>"],
+      code: "-- 位置就是区别\nWHERE  行条件\nGROUP BY ...\nHAVING 组条件",
+      tip: "答题模板：「WHERE 筛行、HAVING 筛组；WHERE 不能用聚合，HAVING 可以。」",
+      sig: ["简述", "区别", "什么是", "写出关键字"]
+    },
+    code: "WHERE  —— 分组前筛「行」，不能包含聚合函数\nHAVING —— 分组后筛「组」，可包含聚合函数，常配 GROUP BY\n\n事务：BEGIN TRAN（开始）/ COMMIT TRAN（提交）/ ROLLBACK TRAN（回滚）\n作用：一组操作要么全部生效，要么全部不生效。",
+    why: ["WHERE 筛行、不能用聚合", "HAVING 筛组、能用聚合", "三个关键字写全"],
+    judge: ["WHERE 3", "HAVING 3", "三词 4"],
+    trap: "只写「WHERE 在前、HAVING 在后」——那是位置不是区别。",
+    memo: "筛行 WHERE，筛组 HAVING；<b>开、成、撤</b> = BEGIN / COMMIT / ROLLBACK。"
+  }
+];
+
+/* 8 个句型（练习用） */
+const SHAPES = [
+  { n: 1, name: "单表查询", hook: "选表筛排", code: "SELECT 列\nFROM 表\nWHERE 条件\nORDER BY 列 DESC;" },
+  { n: 2, name: "两表连接", hook: "连表靠 ON", code: "SELECT a.列, b.列\nFROM 表A a\nJOIN 表B b ON b.外键 = a.Id;" },
+  { n: 3, name: "左连接算 0", hook: "左连数 0", code: "SELECT a.列, COUNT(b.Id)\nFROM 表A a\nLEFT JOIN 表B b ON b.外键 = a.Id\nGROUP BY a.列;" },
+  { n: 4, name: "分组统计", hook: "分组 HAVING", code: "SELECT 分组列, SUM(数值)\nFROM 表\nWHERE 行条件\nGROUP BY 分组列\nHAVING SUM(数值) > 阈值;" },
+  { n: 5, name: "每组取第一", hook: "编号取 1", code: "SELECT * FROM (\n  SELECT 列, ROW_NUMBER() OVER (\n    PARTITION BY 分组列 ORDER BY 排序列 DESC) rn\n  FROM 表) t\nWHERE t.rn = 1;" },
+  { n: 6, name: "关联更新", hook: "UPDATE 别名", code: "UPDATE 别名\nSET 别名.列 = 表.列\nFROM 表 别名\nJOIN 另一张表 ON ...\nWHERE 条件;" },
+  { n: 7, name: "事务", hook: "BEGIN COMMIT", code: "BEGIN TRAN;\nUPDATE ...;\nUPDATE ...;\nCOMMIT TRAN;\n-- 出错 ROLLBACK TRAN" },
+  { n: 8, name: "套打取明细", hook: "套打左连明细", code: "SELECT m.列, d.列\nFROM 主表 m\nLEFT JOIN 明细 d ON d.主表Id = m.Id\nWHERE m.单号 = '...'\nORDER BY d.行号;" }
+];
+
+/* 概念卡（来源于公开题库高频，非 HR 明确要求，了解即可） */
+const CONCEPTS = [
+  { q: "视图是什么？", a: "一条查询存成「虚拟表」，不存数据。作用：简化复杂查询、控制权限（只给几列）。" },
+  { q: "存储过程是什么？", a: "预编译并存放在库里的一段 SQL，可带参数。作用：重复调用、减少网络传输、集中业务逻辑。" },
+  { q: "索引什么时候加？", a: "经常出现在 WHERE / JOIN / ORDER BY 的列上加。代价：占空间、拖慢增删改。不要每列都加。" },
+  { q: "自连接怎么用？", a: "一张表连自己，比如员工表查上级姓名：<code class='i'>FROM Employee e JOIN Employee m ON m.Id = e.ManagerId</code>。" }
+];
+
+/* ==================================================================
+   每题自带表定义（与答案严格一致，字段就是你能写的字段）
+   ================================================================== */
+const SCHEMAS = {
+  1: [{ name: "Orders", cn: "订单表", fields: [
+    ["Id", "int", "主键"], ["OrderNo", "varchar(30)", "订单号"], ["Amount", "decimal(18,2)", "金额"],
+    ["OrderDate", "datetime", "下单日期"], ["Status", "int", "状态 0未审核 1已审核 2完成"]] }],
+  2: [
+    { name: "Orders", cn: "订单表", fields: [["Id", "int", "主键"], ["CustomerId", "int", "客户编号"], ["OrderNo", "varchar(30)", "订单号"], ["Amount", "decimal(18,2)", "金额"]] },
+    { name: "Customer", cn: "客户表", fields: [["Id", "int", "主键"], ["CustomerName", "nvarchar(50)", "客户名称"], ["Phone", "varchar(20)", "电话"]] }
+  ],
+  3: [
+    { name: "Customer", cn: "客户表", fields: [["Id", "int", "主键"], ["CustomerName", "nvarchar(50)", "客户名称"], ["Status", "int", "1正常 9停用"]] },
+    { name: "Orders", cn: "订单表", fields: [["Id", "int", "主键"], ["CustomerId", "int", "客户编号"], ["Amount", "decimal(18,2)", "金额"]] }
+  ],
+  4: [
+    { name: "Orders", cn: "订单表（一单一个商品）", fields: [["Id", "int", "主键"], ["ProductId", "int", "产品编号"], ["Qty", "decimal(18,2)", "数量"], ["Amount", "decimal(18,2)", "金额"], ["Status", "int", "0未审核 1已审核"]] },
+    { name: "Product", cn: "产品表", fields: [["Id", "int", "主键"], ["ProductName", "nvarchar(80)", "产品名称"], ["Price", "decimal(18,2)", "当前单价"]] }
+  ],
+  5: [
+    { name: "Orders", cn: "订单表", fields: [["Id", "int", "主键"], ["CustomerId", "int", "客户编号"], ["Amount", "decimal(18,2)", "金额"], ["OrderDate", "datetime", "下单日期"]] },
+    { name: "Customer", cn: "客户表", fields: [["Id", "int", "主键"], ["CustomerName", "nvarchar(50)", "客户名称"]] }
+  ],
+  6: [
+    { name: "Orders", cn: "订单表", fields: [["Id", "int", "主键"], ["CustomerId", "int", "客户编号"], ["Amount", "decimal(18,2)", "金额"], ["OrderDate", "datetime", "下单日期"]] },
+    { name: "Customer", cn: "客户表", fields: [["Id", "int", "主键"], ["CustomerName", "nvarchar(50)", "客户名称"]] }
+  ],
+  7: [
+    { name: "Orders", cn: "订单表", fields: [["Id", "int", "主键"], ["CustomerId", "int", "客户编号"], ["OrderNo", "varchar(30)", "订单号"], ["Amount", "decimal(18,2)", "金额"]] },
+    { name: "Customer", cn: "客户表", fields: [["Id", "int", "主键"], ["CustomerName", "nvarchar(50)", "客户名称"]] }
+  ],
+  8: [
+    { name: "BillMaster", cn: "单据主表", fields: [["Id", "int", "主键"], ["BillNo", "varchar(30)", "单号"], ["BillDate", "datetime", "单据日期"], ["CustomerName", "nvarchar(50)", "客户名称"]] },
+    { name: "BillDetail", cn: "单据明细", fields: [["Id", "int", "主键"], ["BillId", "int", "主表编号"], ["LineNo", "int", "行号"], ["ProductName", "nvarchar(80)", "商品名称"], ["Qty", "decimal(18,2)", "数量"]] }
+  ],
+  9: [
+    { name: "BillMaster", cn: "单据主表", fields: [["Id", "int", "主键"], ["BillNo", "varchar(30)", "单号"], ["BillType", "nvarchar(20)", "类型：出库/入库"], ["BillDate", "datetime", "单据日期"], ["CustomerName", "nvarchar(50)", "客户名称"]] },
+    { name: "BillDetail", cn: "单据明细", fields: [["Id", "int", "主键"], ["BillId", "int", "主表编号"], ["LineNo", "int", "行号"], ["ProductName", "nvarchar(80)", "商品名称"], ["Qty", "decimal(18,2)", "数量"]] }
+  ],
+  10: [{ name: "Account", cn: "账户表（事务示例）", fields: [["Id", "int", "主键"], ["AccountName", "nvarchar(50)", "账户名"], ["Balance", "decimal(18,2)", "余额"]] }]
+};
+
+function renderSchema(id) {
+  const tables = SCHEMAS[id];
+  if (!tables) return "";
+  return `
+    <div class="schema">
+      <div class="schema-h">本题可用的表（就这些字段，别写不存在的列）</div>
+      ${tables.map((t) => `
+        <div class="schema-t">
+          <div class="schema-n"><b>${esc(t.name)}</b><span>${esc(t.cn)}</span></div>
+          ${t.fields.map(([f, type, cn]) => `
+            <div class="schema-f"><code>${esc(f)}</code><i>${esc(type)}</i><em>${esc(cn)}</em></div>`).join("")}
+        </div>`).join("")}
+    </div>`;
+}
+
+/* ==================================================================
+   SQL 体检引擎：把学生写的答案和标准答案的「结构特征」对照，指出问题
+   ================================================================== */
+const ISSUE = {
+  null_eq:        { t: "用 = NULL 判断空值", fix: "改成 IS NULL / IS NOT NULL", to: 1 },
+  agg_in_where:   { t: "把聚合函数写进了 WHERE", fix: "聚合条件要放 HAVING", to: 5 },
+  no_group:       { t: "用了聚合函数但没有 GROUP BY", fix: "加上 GROUP BY 分组列", to: 5 },
+  missing_left:   { t: "该用 LEFT JOIN，你写的是普通 JOIN", fix: "「所有 / 没有…的」必须左连接，主表放左边", to: 3 },
+  missing_having: { t: "少了 HAVING（筛「组」的条件）", fix: "总额/合计类条件用 HAVING", to: 5 },
+  missing_order:  { t: "题目要求排序，你没写 ORDER BY", fix: "补 ORDER BY 列 DESC", to: 1 },
+  count_star:     { t: "要显示 0 时用了 COUNT(*)", fix: "改成 COUNT(右表主键)", to: 3 },
+  missing_window: { t: "「每组取第一」要用 ROW_NUMBER", fix: "ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)", to: 7 },
+  missing_from:   { t: "关联更新少了 FROM / JOIN", fix: "UPDATE 别名 … FROM 表 别名 JOIN …", to: 4 },
+  fw_punct:       { t: "出现全角括号或分号", fix: "SQL 里只能用半角 () ; ,", to: 1 },
+  date_eq:        { t: "用等号比较月份", fix: "日期用区间：>= 月初 AND < 下月初", to: 1 },
+  no_n:           { t: "中文字符串没加 N 前缀", fix: "写 N'出库'（SQL Server 防乱码）", to: 9 },
+  select_star:    { t: "题目要指定列，你写了 SELECT *", fix: "写出具体列名", to: 1 }
+};
+
+function expectations(q) {
+  return {
+    left: /LEFT\s+JOIN/i.test(q.code),
+    having: /HAVING/i.test(q.code),
+    group: /GROUP\s+BY/i.test(q.code),
+    order: /ORDER\s+BY/i.test(q.code),
+    countCol: /COUNT\s*\(\s*\w+\./i.test(q.code),
+    window: /ROW_NUMBER/i.test(q.code),
+    update: /^\s*UPDATE\b/im.test(q.code)
+  };
+}
+
+function lintSQL(sql, q) {
+  const out = [];
+  const s = String(sql || "").trim();
+  if (!s) return out;
+  const exp = q ? expectations(q) : null;
+  const agg = /\b(SUM|COUNT|AVG|MAX|MIN)\s*\(/i.test(s);
+
+  // WHERE 区间内是否出现聚合（用 GROUP BY / ORDER BY / 分号 截断，避免误判 HAVING）
+  const whereBody = (/\bWHERE\b([\s\S]*?)(?=\bGROUP\s+BY\b|\bHAVING\b|\bORDER\s+BY\b|;|$)/i.exec(s) || [])[1] || "";
+  if (/\b(SUM|COUNT|AVG|MAX|MIN)\s*\(/i.test(whereBody)) out.push("agg_in_where");
+
+  if (/\b(IS\s*NOT\s*NULL|IS\s*NULL)\b/i.test(s) === false && /=|\bLIKE\b/i.test(s)) {
+    if (/(=|\bLIKE\b)\s*NULL\b/i.test(s)) out.push("null_eq");
+  } else if (/(=|\bLIKE\b)\s*NULL\b/i.test(s)) {
+    out.push("null_eq");
+  }
+
+  if (agg && !/\bGROUP\s+BY\b/i.test(s) && exp && exp.group) out.push("no_group");
+  if (exp && exp.having && !/\bHAVING\b/i.test(s)) out.push("missing_having");
+  if (exp && exp.left && !/LEFT\s+JOIN/i.test(s) && /JOIN/i.test(s)) out.push("missing_left");
+  if (exp && exp.order && !/\bORDER\s+BY\b/i.test(s)) out.push("missing_order");
+  if (exp && exp.countCol && /COUNT\s*\(\s*\*\s*\)/i.test(s)) out.push("count_star");
+  if (exp && exp.window && !/ROW_NUMBER/i.test(s)) out.push("missing_window");
+  if (exp && exp.update && /\bUPDATE\b/i.test(s) && !/\bFROM\b/i.test(s)) out.push("missing_from");
+
+  if (/[（）；，]/.test(s)) out.push("fw_punct");
+  if (/=\s*'20\d\d-\d\d'/.test(s)) out.push("date_eq");
+  if (/(?:=|IN\s*\()\s*'[^']*[\u4e00-\u9fa5][^']*'/.test(s) && !/N'[^']*[\u4e00-\u9fa5]/.test(s)) out.push("no_n");
+  if (/\bSELECT\s+\*\s+FROM/i.test(s) && exp && !exp.update) out.push("select_star");
+
+  return [...new Set(out)];
+}
+
+function recordIssues(codes) {
+  if (!S.issues || typeof S.issues !== "object") S.issues = {};
+  codes.forEach((c) => { S.issues[c] = (S.issues[c] || 0) + 1; });
+  save();
+}
+
+function issuesHTML(codes, compact) {
+  if (!codes.length) {
+    return `<div class="memo" style="background:var(--greenSoft)"><b>没发现明显问题 ✓</b>
+      结构上对得上（自评时再逐条比对判分点）。</div>`;
+  }
+  return `<div class="trap"><b>体检查出 ${codes.length} 个问题</b>` +
+    codes.map((c) => {
+      const i = ISSUE[c];
+      return `<div style="margin:6px 0;padding-left:2px">· ${i.t} → <b style="color:var(--green)">${i.fix}</b></div>`;
+    }).join("") + `</div>`;
+}
+
+/* ==================================================================
+   状态（localStorage 持久化）
+   ================================================================== */
+const KEY = "sqlsprint.v1";
+const defaults = { learned: [], drill: {}, examBest: 0, streak: 0, tab: "learn", qi: 0, phase: 0, wrong: [], review: false, goals: {}, flash: -1, tries: {}, issues: {} };
+let S = Object.assign({}, defaults);
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
+if (!Array.isArray(S.wrong)) S.wrong = [];
+if (typeof S.goals !== "object" || S.goals === null) S.goals = {};
+if (typeof S.tries !== "object" || S.tries === null) S.tries = {};
+if (typeof S.issues !== "object" || S.issues === null) S.issues = {};
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ learned: S.learned, drill: S.drill, examBest: S.examBest, streak: S.streak, wrong: S.wrong, goals: S.goals, tries: S.tries, issues: S.issues })); } catch (e) {} }
+function addWrong(id) { if (!S.wrong.includes(id)) S.wrong.push(id); save(); }
+function removeWrong(id) { S.wrong = S.wrong.filter((x) => x !== id); save(); }
+
+const $ = (s) => document.querySelector(s);
+const view = $("#view");
+
+/* ==================================================================
+   工具
+   ================================================================== */
+function esc(s) { return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+function hl(s) {
+  return esc(s)
+    .replace(/--[^\n]*/g, (m) => `<span class="cm">${m}</span>`)
+    .replace(/\b(SELECT|FROM|WHERE|JOIN|LEFT JOIN|GROUP BY|HAVING|ORDER BY|AS|AND|DESC|ON|UPDATE|SET|DELETE|CASE WHEN|THEN|ELSE|END|BEGIN TRAN|COMMIT TRAN|ROLLBACK TRAN|PARTITION BY)\b/g, '<span class="kw">$1</span>')
+    .replace(/\b(COUNT|SUM|AVG|MAX|MIN|ROW_NUMBER|MONTH|YEAR)\b/g, '<span class="fn">$1</span>')
+    .replace(/'([^']*)'/g, '<span class="st">\'$1\'</span>');
+}
+function stars(n) { return "★".repeat(n) + "☆".repeat(3 - n); }
+function pct() {
+  const learned = new Set(S.learned).size;
+  const drill = Object.keys(S.drill).length;
+  const exam = S.examBest > 0 ? 1 : 0;
+  return Math.round(((learned / 10) * 0.5 + (drill / 8) * 0.3 + exam * 0.2) * 100);
+}
+function refreshHead() {
+  const p = pct();
+  $("#ringArc").style.strokeDashoffset = String(106.8 - (106.8 * p) / 100);
+  $("#ringPct").textContent = p + "%";
+  $("#hdStreak").textContent = "🔥 " + (S.streak || 0) + " 连对";
+}
+
+/* 考前闪卡：口诀 → 模板，来回翻 */
+const FLASH = [
+  ...SHAPES.map((s) => ({ tag: "句型 " + s.n + " · " + s.name, front: s.hook, back: s.code })),
+  { tag: "保命规则", front: "书写顺序", back: "FROM → JOIN → WHERE\n→ GROUP BY → HAVING\n→ SELECT → ORDER BY" },
+  { tag: "保命规则", front: "三个坑", back: "① 空值 IS NULL（不是 = NULL）\n② 聚合条件放 HAVING（不是 WHERE）\n③ 「所有/没有」用 LEFT JOIN" },
+  { tag: "保命规则", front: "不会写时", back: "先写 FROM + JOIN 拿一半分，\n再写 -- 思路：… 拿思路分，\n绝不空白。" }
+];
+
+/* ==================================================================
+   视图：闪卡
+   ================================================================== */
+function viewFlash() {
+  const i = S.flash;
+  if (i >= FLASH.length) { S.flash = -1; S.tab = "card"; render(); return; }
+  const C = FLASH[i];
+  const flipped = !!S.flashFlip;
+  view.innerHTML = `
+    <div class="view">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="small">${i + 1} / ${FLASH.length} · ${C.tag}</span>
+        <button class="ghost" style="padding:6px 12px;font-size:13px" data-act="exit">退出</button>
+      </div>
+      <div class="card" data-act="flip" style="min-height:260px;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+        ${flipped
+          ? `<pre style="margin:0">${hl(C.back)}</pre>`
+          : `<div style="text-align:center">
+               <div class="small" style="letter-spacing:.2em;margin-bottom:10px">口诀</div>
+               <div style="font-size:30px;font-weight:800;letter-spacing:.02em">${esc(C.front)}</div>
+               <p class="small" style="margin-top:16px">点一下翻面看模板</p>
+             </div>`}
+      </div>
+      <div class="row">
+        <button class="ghost" data-act="prev" ${i === 0 ? "disabled" : ""}>← 上一张</button>
+        <button class="primary" data-act="next">${i === FLASH.length - 1 ? "结束" : "下一张 →"}</button>
+      </div>
+    </div>`;
+  const on = (sel, fn) => { const el = view.querySelector(sel); if (el) el.onclick = fn; };
+  on('[data-act="exit"]', () => { S.flash = -1; render(); });
+  on('[data-act="flip"]', () => { S.flashFlip = !S.flashFlip; render(); });
+  on('[data-act="prev"]', () => { if (i > 0) { S.flash = i - 1; S.flashFlip = false; render(); } });
+  on('[data-act="next"]', () => { S.flash = i + 1; S.flashFlip = false; render(); });
+}
+
+/* ==================================================================
+   视图：学
+   ================================================================== */
+function viewLearn() {
+  const Q = QS[S.qi] || QS[0];
+  const phase = S.phase || 0;
+  const names = ["① 讲", "② 写", "③ 对"];
+
+  let body = "";
+  if (phase === 0) {
+    body = `
+      <div class="card">
+        <div class="badge b-learn">① 知识点 · 第 ${Q.id} 题 ${Q.key}</div>
+        <h2>${Q.teach.t}</h2>
+        <p class="lead">${Q.teach.lead}</p>
+        <ul class="rules">${Q.teach.rules.map((r) => `<li>${r}</li>`).join("")}</ul>
+        <h3>这个形状长这样</h3>
+        <pre>${hl(Q.teach.code)}</pre>
+        <p class="small">${Q.teach.tip}</p>
+        <div class="signals">${Q.teach.sig.map((s) => `<span>看到「<i>${s}</i>」就用它</span>`).join("")}</div>
+        <div class="row"><button class="primary" data-act="toquiz">记住了，出题 →</button></div>
+      </div>`;
+  } else if (phase === 1) {
+    body = `
+      <div class="card">
+        <div class="badge b-quiz">② 你来写 · ${Q.points} 分 · ${stars(Q.stars)}</div>
+        <h2>自己写一遍</h2>
+        ${renderSchema(Q.id)}
+        <p>${Q.stem}</p>
+        <textarea placeholder="建议写在纸上（明天是手写）；想打出来也可以"></textarea>
+        <p class="small">提示：先 FROM / JOIN，再 WHERE，最后回头补 SELECT。</p>
+        <div class="row">
+          <button class="primary" data-act="toans">我写完了，看解析 →</button>
+          <button class="ghost" data-act="backteach">回看知识点</button>
+        </div>
+      </div>`;
+  } else {
+    const codes = lintSQL(S.tries[Q.id] || "", Q);
+    body = `
+      <div class="card">
+        <div class="badge b-ans">③ 解析 · 对一下</div>
+        <h2>标准答案</h2>
+        <pre>${hl(Q.code)}</pre>
+        <h3>你的答案体检</h3>
+        ${S.tries[Q.id] ? `<pre style="opacity:.85">${hl(S.tries[Q.id])}</pre>` : `<p class="small">你这次没把答案打出来——写在纸上也可以，下面按题型给通用提醒。</p>`}
+        ${issuesHTML(codes)}
+        <h3>逐条讲解</h3>
+        <ul class="rules">${Q.why.map((w) => `<li>${w}</li>`).join("")}</ul>
+        <div class="judge">${Q.judge.map((j) => `<span>${j} 分</span>`).join("")}</div>
+        <div class="trap"><b>最易踩的坑：</b>${Q.trap}</div>
+        <div class="memo"><b>加深印象：</b>${Q.memo}</div>
+        <div class="row">
+          <button class="ok" data-act="selfok">写对了</button>
+          <button class="mid" data-act="selfmid">差一点</button>
+          <button class="bad" data-act="selfno">没写出来</button>
+        </div>
+      </div>`;
+  }
+
+  view.innerHTML = `
+    <div class="view">
+      <div class="goals" style="display:flex;gap:8px;margin-bottom:12px">
+        ${[["g1", "学完 10 题"], ["g2", "默写 8 句型"], ["g3", "完成一次模考"]].map(([k, label]) => `
+          <button data-goal="${k}" style="flex:1;padding:8px 6px;font-size:11.5px;border-radius:9px;font-weight:600;
+            ${S.goals[k] ? "background:var(--greenSoft);border-color:var(--green);color:var(--green)" : "background:var(--card);color:var(--muted)"}">
+            ${S.goals[k] ? "✓ " : ""}${label}</button>`).join("")}
+      </div>
+      <div class="steps">${names.map((n, i) => `<span class="${i === phase ? "on" : i < phase ? "done" : ""}">${n}</span>`).join("")}</div>
+      <div class="qnums">
+        ${QS.map((q) => `<button data-q="${q.id - 1}"
+          class="${q.id - 1 === S.qi ? "cur" : ""} ${S.learned.includes(q.id - 1) ? "done" : ""}">${q.id}</button>`).join("")}
+      </div>
+      ${body}
+      <p class="small" style="text-align:center;margin-top:6px">${PART[Q.part]} · 共 10 题${S.wrong.length ? ` · 错题 ${S.wrong.length}` : ""}</p>
+    </div>`;
+
+  view.querySelectorAll("[data-goal]").forEach((b) => {
+    b.onclick = () => { S.goals[b.dataset.goal] = !S.goals[b.dataset.goal]; save(); render(); };
+  });
+
+  view.querySelectorAll("[data-q]").forEach((b) => {
+    b.onclick = () => { S.qi = Number(b.dataset.q); S.phase = 0; render(); };
+  });
+  const act = view.querySelector("[data-act]");
+  if (act) {
+    view.querySelectorAll("[data-act]").forEach((b) => {
+      b.onclick = () => {
+        const a = b.dataset.act;
+        if (a === "toquiz") { S.phase = 1; render(); }
+        if (a === "toans") {
+          const ta = view.querySelector("textarea");
+          if (ta) S.tries[Q.id] = ta.value;
+          recordIssues(lintSQL(S.tries[Q.id] || "", Q));
+          S.phase = 2; render();
+        }
+        if (a === "backteach") { S.phase = 0; render(); }
+        if (a === "selfok" || a === "selfmid" || a === "selfno") {
+          if (!S.learned.includes(S.qi)) S.learned.push(S.qi);
+          if (a === "selfok") { removeWrong(Q.id); S.streak = (S.streak || 0) + 1; }
+          else { addWrong(Q.id); if (a === "selfno") S.streak = 0; }
+          save(); refreshHead();
+          // 错题重练模式：按顺序走完所有错题，走完就结束
+          if (S.review) {
+            const next = S.wrong.filter((id) => id !== Q.id)[0];
+            if (next !== undefined) { S.qi = next - 1; S.phase = 1; }
+            else { S.review = false; S.tab = "drill"; }
+            render(); return;
+          }
+          if (S.qi >= QS.length - 1) { S.tab = "drill"; render(); }
+          else { S.qi += 1; S.phase = 0; render(); }
+        }
+      };
+    });
+  }
+}
+
+/* ==================================================================
+   视图：练（8 句型默写）
+   ================================================================== */
+let drillState = { idx: 0, revealed: false, order: null };
+
+function viewDrill() {
+  if (!drillState.order) drillState.order = SHAPES.map((_, i) => i);
+
+  if (drillState.idx >= SHAPES.length) {
+    const ok = Object.values(S.drill).filter((v) => v === "ok").length;
+    const p = Math.round((ok / SHAPES.length) * 100);
+    view.innerHTML = `
+      <div class="view">
+        <div class="card done">
+          <div class="big">${p >= 85 ? "🏆" : p >= 60 ? "💪" : "🔁"}</div>
+          <h2>${p >= 85 ? "手感有了" : p >= 60 ? "能写，会卡壳" : "再练一轮"}</h2>
+          <p>8 个句型 · 写对 ${ok} 个 · 熟练度 ${p}%</p>
+          <div class="row"><button class="primary" data-act="again">再来一轮（打乱）</button></div>
+        </div>
+      </div>`;
+    view.querySelector('[data-act="again"]').onclick = () => {
+      drillState = { idx: 0, revealed: false, order: shuffle(SHAPES.map((_, i) => i)) };
+      render();
+    };
+    return;
+  }
+
+  const i = drillState.order[drillState.idx];
+  const S0 = SHAPES[i];
+  const st = S.drill[i];
+
+  const wrongCard = S.wrong.length
+    ? `<div class="card" style="border-color:color-mix(in srgb,var(--rust) 30%,transparent)">
+         <div class="badge b-quiz">错题本 · ${S.wrong.length} 题没吃透</div>
+         <p class="lead">这些题你自评过「差一点」或「没写出来」。单独再走一遍，只走「写 → 对」。</p>
+         <div class="row"><button class="primary" data-act="review">开始重练错题 →</button></div>
+       </div>`
+    : "";
+
+  view.innerHTML = `
+    <div class="view">
+      ${wrongCard}
+      <div class="card">
+        <div class="badge b-gold">默写训练 · ${drillState.idx + 1}/8</div>
+        <h2>${S0.n}. ${S0.name}</h2>
+        <p class="lead">口诀：<b style="color:var(--gold)">${S0.hook}</b></p>
+        ${drillState.revealed
+          ? `<pre>${hl(S0.code)}</pre>
+             <div class="row">
+               <button class="ok" data-grade="ok">写对了</button>
+               <button class="mid" data-grade="mid">差一点</button>
+               <button class="bad" data-grade="no">没写出来</button>
+             </div>`
+          : `<div style="border:1px dashed var(--line2);border-radius:14px;height:150px;display:grid;place-items:center;color:var(--muted);font-size:14px;margin:12px 0">
+               在纸上默写这个句型…
+             </div>
+             <div class="row"><button class="primary" data-act="reveal">写完了，给我看</button></div>`}
+      </div>
+      <p class="small" style="text-align:center">${st === "ok" ? "✅ 这轮已写对" : st === "no" ? "❌ 需要重练" : ""}</p>
+    </div>`;
+
+  const rv = view.querySelector('[data-act="reveal"]');
+  if (rv) rv.onclick = () => { drillState.revealed = true; render(); };
+  const rev = view.querySelector('[data-act="review"]');
+  if (rev) rev.onclick = () => {
+    S.review = true;
+    S.qi = S.wrong[0] - 1;
+    S.phase = 1;
+    S.tab = "learn";
+    render();
+  };
+  view.querySelectorAll("[data-grade]").forEach((b) => {
+    b.onclick = () => {
+      const g = b.dataset.grade;
+      S.drill[i] = g;
+      if (g === "ok") S.streak = (S.streak || 0) + 1;
+      else if (g === "no") S.streak = 0;
+      save(); refreshHead();
+      drillState.idx += 1; drillState.revealed = false; render();
+    };
+  });
+}
+
+function shuffle(a) {
+  const x = a.slice();
+  for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; }
+  return x;
+}
+
+/* ==================================================================
+   视图：考（60 分钟模拟）
+   ================================================================== */
+let exam = { running: false, left: 60 * 60, idx: 0, answers: {}, timer: null, done: false };
+
+function viewExam() {
+  clearInterval(exam.timer);
+  if (!exam.running && !exam.done) return renderExamIntro();
+  if (exam.done) return renderExamResult();
+
+  const Q = QS[exam.idx];
+  view.innerHTML = `
+    <div class="view">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="small">第 ${exam.idx + 1} / 10 题</span>
+        <span class="timer ${exam.left < 600 ? "hot" : ""}" id="tm">${fmt(exam.left)}</span>
+      </div>
+      <div class="qnums">
+        ${QS.map((q, i) => `<button data-go="${i}" class="${i === exam.idx ? "cur" : ""} ${exam.answers[i] ? "done" : ""}">${i + 1}</button>`).join("")}
+      </div>
+      <div class="card">
+        <div class="badge b-quiz">${Q.points} 分 · ${stars(Q.stars)} · ${Q.key}</div>
+        ${renderSchema(Q.id)}
+        <h2>${Q.stem}</h2>
+        <textarea data-ans="${exam.idx}" placeholder="写在纸上为主；这里可以打草稿或直接写 SQL">${esc(exam.answers[exam.idx] || "")}</textarea>
+      </div>
+      <div class="row">
+        <button class="ghost" data-nav="prev" ${exam.idx === 0 ? "disabled" : ""}>← 上一题</button>
+        <button class="primary" data-nav="next">${exam.idx === 9 ? "交卷" : "下一题 →"}</button>
+      </div>
+    </div>`;
+
+  view.querySelectorAll("[data-go]").forEach((b) => {
+    b.onclick = () => { collect(); exam.idx = Number(b.dataset.go); render(); };
+  });
+  view.querySelector("textarea").oninput = (e) => { exam.answers[exam.idx] = e.target.value; };
+  view.querySelectorAll("[data-nav]").forEach((b) => {
+    b.onclick = () => {
+      collect();
+      if (b.dataset.nav === "prev") { exam.idx = Math.max(0, exam.idx - 1); render(); }
+      else if (exam.idx === 9) { finishExam(); }
+      else { exam.idx += 1; render(); }
+    };
+  });
+  clearInterval(exam.timer);
+  exam.timer = setInterval(() => {
+    exam.left -= 1;
+    const el = $("#tm");
+    if (el) { el.textContent = fmt(exam.left); el.classList.toggle("hot", exam.left < 600); }
+    if (exam.left <= 0) finishExam();
+  }, 1000);
+}
+
+function collect() {
+  const ta = view.querySelector("textarea");
+  if (ta) exam.answers[exam.idx] = ta.value;
+}
+function fmt(s) { const m = Math.max(0, Math.floor(s / 60)); const x = Math.max(0, s % 60); return `${m}:${String(x).padStart(2, "0")}`; }
+
+function renderExamIntro() {
+  view.innerHTML = `
+    <div class="view">
+      <div class="card">
+        <div class="badge b-quiz">模拟考 · 100 分 · 60 分钟</div>
+        <h2>按考试来一遍</h2>
+        <p class="lead">10 道题，覆盖多表增删改查、自定义报表、套打、概念简答。写不完会自动交卷。</p>
+        <ul class="rules">
+          <li>建议<strong>拿纸和笔</strong>，像真实考试一样写</li>
+          <li>交卷后逐题看解析，自己判定「写对 / 差一点 / 没写」</li>
+          <li>系统按分值算总分，记录最高分</li>
+        </ul>
+        ${S.examBest > 0 ? `<p class="small">历史最高：<b>${S.examBest} 分</b></p>` : ""}
+        <div class="row"><button class="primary" data-act="start">开始考试 →</button></div>
+      </div>
+    </div>`;
+  view.querySelector('[data-act="start"]').onclick = () => {
+    exam = { running: true, left: 60 * 60, idx: 0, answers: {}, timer: null, done: false };
+    render();
+  };
+}
+
+function finishExam() {
+  clearInterval(exam.timer);
+  collect();
+  exam.running = false;
+  exam.done = true;
+  exam.grades = {};
+  exam.idx = 0;
+  render();
+}
+
+function renderExamResult() {
+  if (exam.idx < QS.length) {
+    const Q = QS[exam.idx];
+    const g = exam.grades[QS[exam.idx].id];
+    view.innerHTML = `
+      <div class="view">
+        <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span class="small">对答案 ${exam.idx + 1} / 10</span>
+          <span class="small">${Q.points} 分</span>
+        </div>
+        <div class="card">
+          <div class="badge b-ans">你的答案 vs 标准答案</div>
+          ${renderSchema(Q.id)}
+          <p class="small" style="margin-bottom:6px">${Q.stem}</p>
+          ${exam.answers[exam.idx] ? `<pre style="opacity:.85">${hl(exam.answers[exam.idx])}</pre>` : `<p class="small">（这题没写）</p>`}
+          <h3>标准答案</h3>
+          <pre>${hl(Q.code)}</pre>
+          <ul class="rules">${Q.why.map((w) => `<li>${w}</li>`).join("")}</ul>
+          <div class="trap"><b>坑：</b>${Q.trap}</div>
+          <div class="row">
+            <button class="ok" data-g="1">写对了（满分）</button>
+            <button class="mid" data-g="0.5">差一点（半分）</button>
+            <button class="bad" data-g="0">没写出来</button>
+          </div>
+        </div>
+      </div>`;
+    view.querySelectorAll("[data-g]").forEach((b) => {
+      b.onclick = () => {
+        exam.grades[Q.id] = Number(b.dataset.g);
+        exam.idx += 1;
+        render();
+      };
+    });
+    return;
+  }
+
+  // 汇总
+  let score = 0;
+  QS.forEach((q) => { score += q.points * (exam.grades[q.id] || 0); });
+  score = Math.round(score);
+  const passed = score >= 60;
+  if (score > (S.examBest || 0)) { S.examBest = score; save(); }
+  refreshHead();
+
+  view.innerHTML = `
+    <div class="view">
+      <div class="card done">
+        <div class="big">${passed ? "🎉" : "😐"}</div>
+        <h2>${score} 分 ${passed ? "· 及格了" : "· 还差一点"}</h2>
+        <p>${passed ? "明天按这个状态上场，见招拆招。" : "把标红的题回 /learn 再走一遍就够。"}</p>
+        <div class="row"><button class="primary" data-act="review">看哪几题丢分</button></div>
+        <div class="row"><button class="ghost" data-act="retry">重新考一次</button></div>
+      </div>
+      <div class="card" id="miss" style="display:none">
+        <h3 style="margin-top:0">丢分清单</h3>
+        ${QS.filter((q) => (exam.grades[q.id] || 0) < 1).map((q) => `
+          <div style="border-bottom:1px solid var(--line);padding:9px 0">
+            <b>第 ${q.id} 题 · ${q.key}</b>
+            <div class="small">${(exam.grades[q.id] || 0) === 0.5 ? "差一点（半分）" : "没写出来"}</div>
+          </div>`).join("") || "<p class='small'>全对，没有丢分。</p>"}
+      </div>
+    </div>`;
+  view.querySelector('[data-act="review"]').onclick = () => {
+    const m = document.getElementById("miss");
+    m.style.display = m.style.display === "none" ? "block" : "none";
+  };
+  view.querySelector('[data-act="retry"]').onclick = () => {
+    exam = { running: false, left: 60 * 60, idx: 0, answers: {}, timer: null, done: false };
+    render();
+  };
+}
+
+/* ==================================================================
+   视图：卡（速查 + 概念）
+   ================================================================== */
+function viewCard() {
+  view.innerHTML = `
+    <div class="view">
+      <div class="card" style="background:linear-gradient(135deg,color-mix(in srgb,var(--indigo) 12%,var(--card)),var(--card))">
+        <div class="badge b-learn">考前 5 分钟</div>
+        <h2 style="margin-bottom:6px">闪卡速览</h2>
+        <p class="lead">11 张卡，正面口诀、背面模板。明早路上翻一遍，比看讲义有效。</p>
+        <div class="row"><button class="primary" data-act="flash">开始闪卡 →</button></div>
+      </div>
+
+      <div class="card">
+        <div class="badge b-quiz">我的问题清单</div>
+        ${Object.keys(S.issues).length
+          ? `<p class="lead">按出现次数排序——出现最多的，就是你最该改的习惯。</p>
+             ${Object.entries(S.issues).sort((a, b) => b[1] - a[1]).map(([code, n]) => {
+               const i = ISSUE[code];
+               if (!i) return "";
+               return `<div style="border-bottom:1px solid var(--line);padding:10px 0">
+                 <div style="display:flex;justify-content:space-between;gap:10px">
+                   <b style="font-size:14.5px">${i.t}</b>
+                   <span class="small" style="white-space:nowrap">${n} 次</span>
+                 </div>
+                 <div class="small" style="color:var(--green);margin-top:2px">改法：${i.fix}</div>
+                 <div class="row" style="margin-top:8px"><button class="ghost" style="padding:7px 12px;font-size:13px" data-goto="${i.to}">去练第 ${i.to} 题 →</button></div>
+               </div>`;
+             }).join("")}`
+          : `<p class="lead">还没有记录。你去「学」里写答案时，系统会自动体检并累积问题。</p>`}
+      </div>
+
+      <div class="card">
+        <div class="badge b-learn">随手体检</div>
+        <p class="lead">手上任何一段 SQL 都可以贴进来查——不用选题目。</p>
+        <textarea id="lintBox" placeholder="把 SQL 贴进来，比如：SELECT * FROM Orders WHERE Amount = NULL"></textarea>
+        <div class="row"><button class="primary" data-act="lint">体检这段 SQL</button></div>
+        <div id="lintOut"></div>
+      </div>
+
+      <div class="card">
+        <div class="badge b-gold">考场速查</div>
+        <h2>信号词 → 句型</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+          <tr style="background:var(--card2)"><th style="text-align:left;padding:7px">题目里出现</th><th style="text-align:left;padding:7px">用哪个</th></tr>
+          ${[
+            ["查询 / 列出（一张表）", "单表查询"],
+            ["要显示另一张表的字段", "JOIN"],
+            ["所有 / 没有…的 / 含无明细", "LEFT JOIN"],
+            ["总共 / 合计 / 几单", "GROUP BY"],
+            ["合计超过 X", "HAVING"],
+            ["每个…最高 / 最新", "ROW_NUMBER"],
+            ["按…重算 / 批量修改", "关联更新"],
+            ["转账 / 同时成功", "事务"],
+            ["单据 / 打印 / 表头+明细", "套打"]
+          ].map(([a, b]) => `<tr><td style="padding:7px;border-top:1px solid var(--line)">${a}</td>
+            <td style="padding:7px;border-top:1px solid var(--line);color:var(--indigo);font-weight:600">${b}</td></tr>`).join("")}
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="badge b-learn">书写顺序（背这个）</div>
+        <pre>FROM → JOIN → WHERE → GROUP BY
+→ HAVING → SELECT → ORDER BY</pre>
+        <p class="small">先连表，再筛行，再分组，最后回头挑列。这一步能救回大量分数。</p>
+      </div>
+
+      <div class="card">
+        <div class="badge b-quiz">交卷前 60 秒</div>
+        <ul class="rules">
+          <li>空值写成 <code class="i">IS NULL</code> 了吗</li>
+          <li>聚合条件有没有错放进 <code class="i">WHERE</code></li>
+          <li><code class="i">SELECT</code> 的列都在 <code class="i">GROUP BY</code> 或被聚合了吗</li>
+          <li>「所有 / 没有」题用了 <code class="i">LEFT JOIN</code> 吗</li>
+          <li>括号、引号、<code class="i">END</code>、分号成对了吗</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="badge b-gold">可能被顺带问到的概念</div>
+        ${CONCEPTS.map((c) => `<div style="border-bottom:1px solid var(--line);padding:10px 0">
+          <b>${c.q}</b><div class="small" style="margin-top:3px">${c.a}</div></div>`).join("")}
+      </div>
+
+      <p class="small" style="text-align:center;margin:8px 0 20px">
+        想要纸质卷：<a href="paper.html" style="color:var(--indigo)">/paper</a> · 表结构手册：<a href="schema.html" style="color:var(--indigo)">/schema</a>
+      </p>
+
+      <div class="card">
+        <div class="badge b-gold">数据与进度</div>
+        <p class="small">学习记录只存在这台设备的浏览器里（localStorage），不上传任何服务器。换设备或清缓存会丢失。</p>
+        <p class="small">已学 ${new Set(S.learned).size}/10 题 · 已练 ${Object.keys(S.drill).length}/8 句型 · 模考最高 ${S.examBest || 0} 分</p>
+        <div class="row">
+          <button data-act="export">复制学习记录</button>
+          <button class="ghost" data-act="reset">清空进度重来</button>
+        </div>
+      </div>
+    </div>`;
+
+  const fl = view.querySelector('[data-act="flash"]');
+  if (fl) fl.onclick = () => { S.flash = 0; S.flashFlip = false; render(); };
+
+  view.querySelectorAll("[data-goto]").forEach((b) => {
+    b.onclick = () => { S.qi = Number(b.dataset.goto) - 1; S.phase = 1; S.tab = "learn"; render(); };
+  });
+
+  const lb = view.querySelector('[data-act="lint"]');
+  if (lb) lb.onclick = () => {
+    const box = view.querySelector("#lintBox");
+    const out = view.querySelector("#lintOut");
+    if (out) out.innerHTML = issuesHTML(lintSQL(box ? box.value : "", null));
+  };
+
+  const ex = view.querySelector('[data-act="export"]');  if (ex) ex.onclick = async () => {
+    const text = `SQL 冲刺记录\n已学：${new Set(S.learned).size}/10\n已练：${Object.keys(S.drill).length}/8\n模考最高：${S.examBest || 0} 分\n时间：${new Date().toLocaleString("zh-CN")}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      ex.textContent = "已复制 ✓";
+    } catch (e) {
+      ex.textContent = "复制失败，请手动记录";
+    }
+  };
+  const rs = view.querySelector('[data-act="reset"]');
+  if (rs) rs.onclick = () => {
+    if (!confirm("清空全部学习记录？此操作不可撤销。")) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    S = Object.assign({}, defaults);
+    render();
+  };
+}
+
+/* ==================================================================
+   路由
+   ================================================================== */
+function render() {
+  try {
+    refreshHead();
+    const titles = { learn: "学习 · 讲写对", drill: "练习 · 默写 8 句型", exam: "模拟考 · 60 分钟", card: "速查卡" };
+    $("#hdTitle").textContent = titles[S.tab] || "SQL 冲刺";
+    document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === S.tab));
+    if (S.tab === "learn") viewLearn();
+    else if (S.tab === "drill") viewDrill();
+    else if (S.tab === "exam") viewExam();
+    else if (S.flash >= 0) viewFlash();
+    else viewCard();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (error) {
+    // 生产兜底：渲染出错不能白屏，给出可恢复路径
+    view.innerHTML = `
+      <div class="view"><div class="card done">
+        <div class="big">🛠️</div>
+        <h2>这个页面出了点问题</h2>
+        <p class="small">${String(error && error.message || error).slice(0, 160)}</p>
+        <div class="row"><button class="primary" data-act="reload">重新加载</button></div>
+        <div class="row"><button class="ghost" data-act="hardreset">清空本地进度并恢复</button></div>
+      </div></div>`;
+    const r = view.querySelector('[data-act="reload"]');
+    if (r) r.onclick = () => location.reload();
+    const h = view.querySelector('[data-act="hardreset"]');
+    if (h) h.onclick = () => { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); };
+  }
+}
+
+document.querySelectorAll("nav button").forEach((b) => {
+  b.onclick = () => {
+    S.tab = b.dataset.tab;
+    if (S.tab !== "exam") clearInterval(exam.timer);
+    render();
+  };
+});
+
+render();
+</script>
+</body>
+</html>
