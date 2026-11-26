@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SQL Server 速成课 · 明天笔试够用</title>
+<style>
+  :root{color-scheme:light dark;--bg:#fff;--fg:#1c1d21;--muted:#6b6b74;--line:#e6e6ea;--code-bg:#f6f7f9;--accent:#2f6feb;--accent-soft:#eaf0ff;--warn:#b4530a;--warn-soft:#fff5ea;--ok:#1a7f45;--ok-soft:#eaf7ef}
+  @media (prefers-color-scheme:dark){:root{--bg:#15161a;--fg:#e9e9ec;--muted:#9b9ba4;--line:#2b2d33;--code-bg:#1e2025;--accent:#7aa2ff;--accent-soft:#1d2536;--warn:#e2a878;--warn-soft:#2a2119;--ok:#78c99a;--ok-soft:#17251d}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px 90px}
+  header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0 8px}
+  .brand{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 2px 8px}
+  .brand b{font-size:15px}
+  .progress{font-size:12.5px;color:var(--muted)}
+  .bar{height:3px;background:var(--line);border-radius:2px;overflow:hidden;margin:0 2px}
+  .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+  nav{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 2px;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:0 0 auto;font:inherit;font-size:13px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap}
+  nav button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  nav button.done:not(.on){color:var(--ok);border-color:var(--ok)}
+  h1{font-size:23px;line-height:1.35;margin:22px 0 6px}
+  h2{font-size:19px;margin:26px 0 8px}
+  h3{font-size:16px;margin:20px 0 6px}
+  .lead{color:var(--muted);font-size:14.5px;margin:0 0 16px}
+  code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:13.5px}
+  pre{background:var(--code-bg);padding:13px 14px;border-radius:9px;overflow-x:auto;font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:13.5px;line-height:1.65;border:1px solid var(--line);margin:10px 0}
+  pre code{background:none;padding:0;font-size:inherit}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--code-bg);font-weight:600}
+  .box{border-radius:9px;padding:12px 14px;margin:14px 0;font-size:14.5px;border-left:3px solid var(--accent);background:var(--accent-soft)}
+  .box.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+  .box.ok{border-left-color:var(--ok);background:var(--ok-soft)}
+  .box b{display:block;margin-bottom:2px}
+  .say{font-size:15.5px;margin:8px 0}
+  .say em{font-style:normal;background:var(--accent-soft);padding:0 3px;border-radius:3px}
+  details{border:1px solid var(--line);border-radius:9px;padding:10px 13px;margin:10px 0;background:var(--code-bg)}
+  summary{cursor:pointer;font-weight:600;color:var(--accent)}
+  ol,ul{padding-left:22px}
+  .pager{display:flex;gap:10px;margin:32px 0 0;justify-content:space-between}
+  .pager button{font:inherit;flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--code-bg);color:var(--fg);cursor:pointer}
+  .pager button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  section{display:none}
+  section.on{display:block}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--code-bg);border:1px solid var(--line);color:var(--muted);margin-left:6px}
+  .step{display:flex;gap:10px;margin:8px 0}
+  .step i{flex:0 0 22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-style:normal;font-size:13px;display:grid;place-items:center;margin-top:3px}
+  .small{font-size:13.5px;color:var(--muted)}
+
+  /* --- 移动端基础修补（自动注入） --- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  a,button,input,select,textarea,summary,[role="button"]{touch-action:manipulation}
+  :focus-visible{outline:2px solid currentColor;outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand"><b>SQL Server 速成课</b><span class="progress" id="progress">0 / 9</span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <nav id="nav"></nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============ 0 ============ -->
+<section id="l0" data-title="0 先看懂表">
+  <h1>第 0 课：先用 30 秒看懂「表」</h1>
+  <p class="lead">这一课不讲 SQL，只建立画面感。没有画面感，后面全是天书。</p>
+
+  <h2>把数据库想成一个 Excel 文件</h2>
+  <p class="say">一个数据库 = 一个 Excel 文件；文件里的每个工作表 = 一张<em>表</em>；表的每一行 = 一条<em>记录</em>（一笔业务）；每一列 = 一个<em>字段</em>（一种属性）。</p>
+
+  <p>比如 ERP 里一定有的两张表：</p>
+  <p class="small">Customer（客户表）</p>
+  <table>
+    <tr><th>Id</th><th>CustomerName</th><th>Phone</th></tr>
+    <tr><td>1</td><td>甲公司</td><td>13800000001</td></tr>
+    <tr><td>2</td><td>乙公司</td><td>13800000002</td></tr>
+    <tr><td>3</td><td>丙公司</td><td>13800000003</td></tr>
+  </table>
+
+  <p class="small">Orders（订单表）</p>
+  <table>
+    <tr><th>Id</th><th>CustomerId</th><th>OrderNo</th><th>Amount</th><th>OrderDate</th></tr>
+    <tr><td>101</td><td>1</td><td>DD001</td><td>1200</td><td>2026-11-20</td></tr>
+    <tr><td>102</td><td>1</td><td>DD002</td><td>800</td><td>2026-11-22</td></tr>
+    <tr><td>103</td><td>2</td><td>DD003</td><td>5600</td><td>2026-11-23</td></tr>
+  </table>
+
+  <div class="box">
+    <b>关键：Orders.CustomerId 就是 Customer.Id</b>
+    订单表里不存客户名字，只存客户的编号。<br>
+    这就是「关系」。以后所有<strong>多表查询</strong>，本质都是拿这个编号去客户表里把名字「对」回来。
+  </div>
+
+  <div class="box ok">
+    <b>一句话记住今天要干的四件事</b>
+    提问（查询）、连接（多表）、统计（报表）、修改（增删改）。明天笔试就考这四件。
+  </div>
+</section>
+
+<!-- ============ 1 ============ -->
+<section id="l1" data-title="1 查一张表">
+  <h1>第 1 课：只查一张表</h1>
+  <p class="lead">目标：从一张表里，挑出你要的列、你要的行、按你要的顺序排。</p>
+
+  <h2>人话翻译</h2>
+  <div class="step"><i>1</i><div><code>SELECT</code> —— 我要<strong>哪几列</strong></div></div>
+  <div class="step"><i>2</i><div><code>FROM</code> —— 从<strong>哪张表</strong></div></div>
+  <div class="step"><i>3</i><div><code>WHERE</code> —— 只要<strong>哪些行</strong>（可选）</div></div>
+  <div class="step"><i>4</i><div><code>ORDER BY</code> —— 怎么<strong>排序</strong>（可选）</div></div>
+
+<pre><code>SELECT OrderNo, Amount          -- 要这两列
+FROM Orders                     -- 从订单表
+WHERE Amount &gt; 1000             -- 只要金额大于 1000 的
+ORDER BY Amount DESC;           -- 按金额从大到小</code></pre>
+
+  <p class="small">结果：DD003 / 5600、DD001 / 1200。</p>
+
+  <h2>拆开看每一块</h2>
+  <table>
+    <tr><th>写法</th><th>含义</th></tr>
+    <tr><td><code>SELECT *</code></td><td>所有列（考试里可以用，省事）</td></tr>
+    <tr><td><code>WHERE Amount &gt;= 1000</code></td><td>大于等于；<code>&gt;</code> 大于，<code>&lt;</code> 小于，<code>&lt;&gt;</code> 不等于</td></tr>
+    <tr><td><code>WHERE CustomerName = N'甲公司'</code></td><td>文本要加单引号，中文前加 <code>N</code>（SQL Server 习惯）</td></tr>
+    <tr><td><code>BETWEEN '2026-11-01' AND '2026-11-30'</code></td><td>区间，含两端</td></tr>
+    <tr><td><code>LIKE N'%甲%'</code></td><td>模糊匹配；<code>%</code> 代表任意字符</td></tr>
+    <tr><td><code>AND</code> / <code>OR</code></td><td>并且 / 或者，<code>OR</code> 记得加括号</td></tr>
+    <tr><td><code>ORDER BY Amount DESC</code></td><td>倒序；不加 <code>DESC</code> 就是升序 <code>ASC</code></td></tr>
+    <tr><td><code>SELECT TOP 10 …</code></td><td>只要前 10 行（SQL Server 特有）</td></tr>
+  </table>
+
+  <div class="box warn">
+    <b>第一个坑：空值</b>
+    <code>WHERE Amount = NULL</code> 永远查不到东西。空值必须写 <code>WHERE Amount IS NULL</code>。
+  </div>
+
+  <h2>小测</h2>
+  <p>查出 2026 年 11 月下单、金额大于 2000 的订单号，按日期从新到旧。</p>
+  <details><summary>看答案</summary>
+<pre><code>SELECT OrderNo, Amount, OrderDate
+FROM Orders
+WHERE OrderDate &gt;= '2026-11-01' AND OrderDate &lt; '2026-12-01'
+  AND Amount &gt; 2000
+ORDER BY OrderDate DESC;</code></pre>
+  <p class="small">日期区间用 <code>&gt;= 月初 AND &lt; 下月初</code> 比 <code>BETWEEN</code> 更稳（不会漏掉带时分秒的数据）。</p>
+  </details>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="l2" data-title="2 多表连接">
+  <h1>第 2 课：多表连接（明天必考）</h1>
+  <p class="lead">目标：把订单表里的「客户编号」换成客户表里的「客户名字」。</p>
+
+  <h2>为什么需要连接</h2>
+  <p class="say">订单表只存 <code>CustomerId = 1</code>，但报表要显示<em>「甲公司」</em>。名字在另一张表里，所以要把两张表「对起来看」——这就是 JOIN。</p>
+  <p class="small">你在 Excel 里用 VLOOKUP 干的事，SQL 里就是 JOIN。</p>
+
+  <h2>两种连接，只要判断一句话</h2>
+  <table>
+    <tr><th>类型</th><th>什么时候用</th><th>写法</th></tr>
+    <tr><td><strong>内连接</strong><br>INNER JOIN</td><td>两边都有数据才算（比如「查订单及其客户名」，没客户的单子不要）</td><td><code>JOIN … ON …</code></td></tr>
+    <tr><td><strong>左连接</strong><br>LEFT JOIN</td><td>左边一张不能少（比如「查所有客户及其订单」，没下单的客户也要列出来）</td><td><code>LEFT JOIN … ON …</code></td></tr>
+  </table>
+
+<pre><code>SELECT o.OrderNo, c.CustomerName, o.Amount
+FROM Orders o                                    -- o 是别名
+JOIN Customer c ON c.Id = o.CustomerId           -- 靠这个条件把两张表对起来
+ORDER BY o.OrderDate DESC;</code></pre>
+
+  <div class="box">
+    <b>三个必须写对的地方</b>
+    ① <strong>别名</strong>（<code>o</code>、<code>c</code>）——两张表都有 <code>Id</code> 时，不写别名就分不清；<br>
+    ② <strong>ON 条件</strong>——两边的对应关系，写错就是乱连；<br>
+    ③ <strong>字段前带别名</strong>（<code>o.Amount</code>）——阅卷一眼看懂。
+  </div>
+
+  <h2>怎么一眼判断该用 LEFT 还是 INNER</h2>
+  <div class="box ok">
+    <b>看题目里有没有「所有」「没下过单的」</b>
+    出现「所有客户」「没有订单的客户」「一张单据要包含空明细」——<strong>一律 LEFT JOIN</strong>。<br>
+    只说「查订单和客户名」——用 <code>JOIN</code> 就行。
+  </div>
+
+  <h2>三张表怎么连</h2>
+<pre><code>SELECT o.OrderNo, c.CustomerName, p.ProductName, d.Qty
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+JOIN OrderDetail d ON d.OrderId = o.Id
+JOIN Product p ON p.Id = d.ProductId;</code></pre>
+  <p class="small">就是一路 <code>JOIN … ON …</code> 叠下去，每多一张表就多一行。</p>
+
+  <h2>小测</h2>
+  <p>查出所有客户的名字和他下单的总次数，<strong>一次都没下单的客户也要显示（次数为 0）</strong>。</p>
+  <details><summary>看答案</summary>
+<pre><code>SELECT c.CustomerName, COUNT(o.Id) AS 订单数
+FROM Customer c
+LEFT JOIN Orders o ON o.CustomerId = c.Id
+GROUP BY c.CustomerName;</code></pre>
+  <p class="small">注意 <code>COUNT(o.Id)</code> 而不是 <code>COUNT(*)</code>：没下单的客户右表是 NULL，<code>COUNT(列)</code> 不数 NULL，结果才是 0。</p>
+  </details>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="l3" data-title="3 分组统计">
+  <h1>第 3 课：分组统计（自定义报表的地基）</h1>
+  <p class="lead">目标：从「一行一笔订单」变成「一行一个客户 + 他的合计」。</p>
+
+  <h2>人话翻译</h2>
+  <p class="say">把行按某一列<em>合并成组</em>，然后对每组算个数、求和、求平均。</p>
+  <p>口诀：<strong>按谁分，就 GROUP BY 谁；要算的数，用聚合函数包起来。</strong></p>
+
+  <table>
+    <tr><th>聚合函数</th><th>含义</th></tr>
+    <tr><td><code>COUNT(*)</code> / <code>COUNT(列)</code></td><td>数行数（<code>COUNT(列)</code> 不数空值）</td></tr>
+    <tr><td><code>SUM(列)</code></td><td>求和</td></tr>
+    <tr><td><code>AVG(列)</code> / <code>MAX(列)</code> / <code>MIN(列)</code></td><td>平均 / 最大 / 最小</td></tr>
+  </table>
+
+<pre><code>SELECT c.CustomerName,
+       COUNT(o.Id)   AS 订单数,
+       SUM(o.Amount) AS 总金额,
+       MAX(o.OrderDate) AS 最近下单
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+GROUP BY c.CustomerName;      -- 按客户名分组</code></pre>
+
+  <h2>HAVING：给「组」加条件</h2>
+  <table>
+    <tr><th>条件加在哪</th><th>过滤的是什么</th></tr>
+    <tr><td><code>WHERE</code></td><td>原始的一行行数据</td></tr>
+    <tr><td><code>HAVING</code></td><td>分组之后的每组结果</td></tr>
+  </table>
+
+<pre><code>SELECT c.CustomerName, SUM(o.Amount) AS 总金额
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE o.OrderDate &gt;= '2026-01-01'      -- 先在原始行上筛时间
+GROUP BY c.CustomerName
+HAVING SUM(o.Amount) &gt; 10000           -- 再筛「总金额大于 1 万」的组
+ORDER BY SUM(o.Amount) DESC;</code></pre>
+
+  <div class="box warn">
+    <b>第二个坑（扣分最多）</b>
+    <code>SELECT</code> 里出现的列，<strong>要么放进 <code>GROUP BY</code>，要么被聚合函数包住</strong>。<br>
+    下面这条是错的：<code>SELECT CustomerName, OrderDate, SUM(Amount) … GROUP BY CustomerName</code>（<code>OrderDate</code> 既没分组也没聚合）。
+  </div>
+
+  <h2>书写顺序（背下来）</h2>
+<pre><code>SELECT … FROM … JOIN … ON …
+WHERE …
+GROUP BY …
+HAVING …
+ORDER BY …;</code></pre>
+
+  <h2>小测</h2>
+  <p>按客户统计 2026 年的订单数和总金额，只要总金额超过 1 万的，按总金额倒序。</p>
+  <details><summary>看答案</summary>
+<pre><code>SELECT c.CustomerName, COUNT(o.Id) AS 订单数, SUM(o.Amount) AS 总金额
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE o.OrderDate &gt;= '2026-01-01' AND o.OrderDate &lt; '2027-01-01'
+GROUP BY c.CustomerName
+HAVING SUM(o.Amount) &gt; 10000
+ORDER BY SUM(o.Amount) DESC;</code></pre>
+  </details>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="l4" data-title="4 增删改">
+  <h1>第 4 课：增、删、改</h1>
+  <p class="lead">ERP 实施每天都在干的三件事。笔试常考「关联更新」和「事务」。</p>
+
+  <h2>增：INSERT</h2>
+<pre><code>-- 插一行
+INSERT INTO Customer (CustomerName, Phone, CreateTime)
+VALUES (N'丁公司', '13900000004', GETDATE());
+
+-- 把查询结果批量插进去（结转、日志、汇总表常用）
+INSERT INTO OrderLog (OrderId, Action, CreateTime)
+SELECT o.Id, N'结转', GETDATE()
+FROM Orders o
+WHERE o.Status = 1;</code></pre>
+
+  <h2>改：UPDATE</h2>
+<pre><code>-- 普通更新
+UPDATE Orders
+SET Status = 2, UpdateTime = GETDATE()
+WHERE Id = 101;
+
+-- ★ 关联更新（ERP 必考，SQL Server 专有写法）
+UPDATE o
+SET o.Amount = o.Qty * p.Price
+FROM Orders o
+JOIN Product p ON p.Id = o.ProductId
+WHERE o.Status = 0;</code></pre>
+
+  <div class="box">
+    <b>记住这个形状</b>
+    <code>UPDATE 别名 SET 别名.列 = … FROM 表 别名 JOIN 另一张表 ON … WHERE …</code><br>
+    别名写在 <code>UPDATE</code> 后面，表在 <code>FROM</code> 里连起来——这是 T-SQL 的招牌写法。
+  </div>
+
+  <h2>删：DELETE</h2>
+<pre><code>DELETE FROM Orders WHERE Id = 101;
+
+-- 关联删除：删掉「已停用客户」的所有订单
+DELETE o
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE c.Status = 9;</code></pre>
+
+  <div class="box warn">
+    <b>永远先写 WHERE</b>
+    <code>DELETE FROM Orders;</code> 会清空整张表。手写时先把 <code>WHERE</code> 写上，再补前面的语句。
+  </div>
+
+  <h2>事务：要么全成功，要么全不做</h2>
+<pre><code>BEGIN TRAN;
+UPDATE Account SET Balance = Balance - 100 WHERE Id = 1;
+UPDATE Account SET Balance = Balance + 100 WHERE Id = 2;
+COMMIT TRAN;
+-- 中途出错：ROLLBACK TRAN;</code></pre>
+  <p class="small">三个关键词 <code>BEGIN TRAN</code> / <code>COMMIT</code> / <code>ROLLBACK</code> 写出来就是得分点。能补一句「保证转账不出现只扣不加」更好。</p>
+
+  <h2>小测</h2>
+  <p>把「电子」分类产品的单价上调 5%，并记录修改时间。</p>
+  <details><summary>看答案</summary>
+<pre><code>UPDATE Product
+SET Price = Price * 1.05, UpdateTime = GETDATE()
+WHERE Category = N'电子';</code></pre>
+  </details>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="l5" data-title="5 报表进阶">
+  <h1>第 5 课：报表进阶四招</h1>
+  <p class="lead">这四招覆盖「自定义报表」里绝大多数怪题。</p>
+
+  <h2>第 1 招：分段统计（CASE WHEN）</h2>
+  <p class="say">题目问「小额、中额、大额各多少单」——不是分组，而是<em>按条件数数</em>。</p>
+<pre><code>SELECT
+  SUM(CASE WHEN Amount &lt; 1000 THEN 1 ELSE 0 END) AS 小额,
+  SUM(CASE WHEN Amount &gt;= 1000 AND Amount &lt; 5000 THEN 1 ELSE 0 END) AS 中额,
+  SUM(CASE WHEN Amount &gt;= 5000 THEN 1 ELSE 0 END) AS 大额
+FROM Orders;</code></pre>
+  <p class="small">套路：<code>SUM(CASE WHEN 条件 THEN 1 ELSE 0 END)</code> = 「满足条件的行数」。</p>
+
+  <h2>第 2 招：子查询 / EXISTS（存在、不存在）</h2>
+  <p class="say">题目出现「没有…的」「不存在…的」「有的」——用 <code>EXISTS</code> / <code>NOT EXISTS</code>。</p>
+<pre><code>-- 没下过单的客户
+SELECT * FROM Customer c
+WHERE NOT EXISTS (SELECT 1 FROM Orders o WHERE o.CustomerId = c.Id);</code></pre>
+
+  <h2>第 3 招：每组取第一条（ROW_NUMBER）</h2>
+  <p class="say">题目问「每个客户金额最高的那一单」「每个产品最新的一次入库」。</p>
+<pre><code>SELECT * FROM (
+  SELECT o.*, ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn
+  FROM Orders o
+) t
+WHERE t.rn = 1;</code></pre>
+  <p class="small">记法：<code>PARTITION BY</code> = 按谁分组，<code>ORDER BY</code> = 组里怎么排，外面套一层取 <code>rn = 1</code>。</p>
+
+  <h2>第 4 招：行转列（月份转 12 列）</h2>
+<pre><code>SELECT CustomerId,
+  SUM(CASE WHEN MONTH(OrderDate) = 1  THEN Amount ELSE 0 END) AS M1,
+  SUM(CASE WHEN MONTH(OrderDate) = 2  THEN Amount ELSE 0 END) AS M2,
+  -- ……
+  SUM(CASE WHEN MONTH(OrderDate) = 12 THEN Amount ELSE 0 END) AS M12
+FROM Orders
+WHERE YEAR(OrderDate) = 2026
+GROUP BY CustomerId;</code></pre>
+  <p class="small">写不完 12 列就写 3 列 + 一句「其余月份同理」，比空着强。</p>
+
+  <h2>小测</h2>
+  <p>查出每个客户金额最高的那一笔订单（只显示客户名、订单号、金额）。</p>
+  <details><summary>看答案</summary>
+<pre><code>SELECT t.CustomerName, t.OrderNo, t.Amount FROM (
+  SELECT c.CustomerName, o.OrderNo, o.Amount,
+         ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn
+  FROM Orders o JOIN Customer c ON c.Id = o.CustomerId
+) t
+WHERE t.rn = 1;</code></pre>
+  </details>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="l6" data-title="6 套打取数">
+  <h1>第 6 课：套打取数</h1>
+  <p class="lead">套打 = 把数据填进预印好的单据纸（出库单、发票、凭证）。考的是<strong>一次取全主表和明细</strong>。</p>
+
+  <h2>一张单据 = 1 行表头 + N 行明细</h2>
+  <p class="say">单据主表（BillMaster）存单号、日期、客户；明细表（BillDetail）存每一行商品。<strong>它们靠 BillId 关联。</strong></p>
+
+<pre><code>SELECT m.BillNo, m.BillDate, m.CustomerName,
+       d.LineNo, d.ProductName, d.Qty, d.Amount
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillNo = 'CK20261126001'
+ORDER BY d.LineNo;</code></pre>
+
+  <div class="box warn">
+    <b>为什么必须 LEFT JOIN（判分点）</b>
+    没有明细的单据也要打出来（留空白行）。用 <code>JOIN</code> 会把这类单据整张丢掉。
+  </div>
+
+  <h2>表头合计</h2>
+<pre><code>SELECT m.BillNo, m.CustomerName,
+       COUNT(d.Id)   AS 行数,
+       SUM(d.Qty)    AS 总数量,
+       SUM(d.Amount) AS 总金额
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillDate &gt;= '2026-11-01' AND m.BillDate &lt; '2026-12-01'
+GROUP BY m.BillNo, m.CustomerName
+ORDER BY m.BillNo;</code></pre>
+
+  <h2>把多行明细拼成一行（拉开差距的一招）</h2>
+  <p class="say">有些套打模板要求「一张单据一行，明细用逗号连起来」。SQL Server 的写法是 <code>STUFF</code> + <code>FOR XML PATH</code>。</p>
+<pre><code>SELECT m.BillNo,
+       STUFF((
+         SELECT ',' + d.ProductName + '×' + CAST(d.Qty AS VARCHAR(10))
+         FROM BillDetail d
+         WHERE d.BillId = m.Id
+         ORDER BY d.LineNo
+         FOR XML PATH(''), TYPE
+       ).value('.', 'NVARCHAR(MAX)'), 1, 1, '') AS 明细
+FROM BillMaster m;</code></pre>
+  <p class="small">结构固定：<code>STUFF((拼接子查询 FOR XML PATH('')),1,1,'')</code>。记不全就写 <code>+ ','</code> 那段拼串，也有分。</p>
+
+  <h2>小测</h2>
+  <p>查出所有出库单（含没有明细的），显示单号、日期、客户、明细行号、商品名、数量。</p>
+  <details><summary>看答案</summary>
+<pre><code>SELECT m.BillNo, m.BillDate, m.CustomerName,
+       d.LineNo, d.ProductName, d.Qty
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillType = N'出库'
+ORDER BY m.BillNo, d.LineNo;</code></pre>
+  </details>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="l7" data-title="7 手写技巧">
+  <h1>第 7 课：手写怎么拿分</h1>
+  <p class="lead">同样的知识，写得让阅卷看得懂 = 多拿 20 分。</p>
+
+  <h2>落笔顺序（照这个写，不会乱）</h2>
+  <div class="step"><i>1</i><div>先写 <code>FROM</code> + 所有 <code>JOIN … ON …</code>（把表连对，这步占一半分）</div></div>
+  <div class="step"><i>2</i><div>补 <code>WHERE</code>（筛选条件）</div></div>
+  <div class="step"><i>3</i><div>有聚合就写 <code>GROUP BY</code>、必要时 <code>HAVING</code></div></div>
+  <div class="step"><i>4</i><div>回头写 <code>SELECT</code> 的列（含聚合、别名）</div></div>
+  <div class="step"><i>5</i><div>最后 <code>ORDER BY</code></div></div>
+
+  <h2>格式分（白送的分）</h2>
+  <ul>
+    <li>每个子句<strong>换行</strong>，关键字<strong>全大写</strong>；</li>
+    <li>每张表都起<strong>别名</strong>，字段前带前缀；</li>
+    <li>每个字段用 <code>AS 中文名</code> 起个中文别名，阅卷一眼看懂；</li>
+    <li>多表条件写成 <code>JOIN … ON …</code>，不要全塞在 <code>WHERE</code> 里（老写法不扣分，但可读性差）。</li>
+  </ul>
+
+  <h2>不会写的时候（救命三招）</h2>
+  <div class="box ok">
+    <b>① 写思路注释</b>
+    <code>-- 思路：先按客户分组求合计，再筛出大于 1 万的</code><br>
+    <b>② 写骨架</b>
+    哪怕聚合写不全，<code>SELECT … FROM … GROUP BY … HAVING …</code> 的框架对了就给分<br>
+    <b>③ 用笨办法</b>
+    不会窗口函数就用子查询；不会 <code>FORMAT()</code> 就用 <code>CONVERT()</code>；能跑通优先于漂亮
+  </div>
+
+  <h2>交卷前 60 秒检查清单</h2>
+  <table>
+    <tr><th>检查项</th><th>为什么</th></tr>
+    <tr><td>空值是不是写成 <code>IS NULL</code></td><td><code>= NULL</code> 永远查不到</td></tr>
+    <tr><td>聚合条件是不是在 <code>HAVING</code></td><td>放 <code>WHERE</code> 直接报错</td></tr>
+    <tr><td><code>SELECT</code> 的列是否都在 <code>GROUP BY</code> 或被聚合</td><td>最常见的错</td></tr>
+    <tr><td>该 LEFT 的地方有没有写成 INNER</td><td>「所有」「没有的」类题目</td></tr>
+    <tr><td>括号 / 引号 / <code>END</code> / 分号是否成套</td><td>手写最容易漏</td></tr>
+    <tr><td>中文字符串有没有 <code>N'…'</code></td><td>SQL Server 中文防乱码</td></tr>
+  </table>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="l8" data-title="8 模拟卷">
+  <h1>第 8 课：模拟卷（8 题 · 100 分）</h1>
+  <p class="lead">先自己写在纸上，再点开答案对。分数 = 成绩，别自欺欺人。</p>
+
+  <h2>表结构</h2>
+  <table>
+    <tr><th>表</th><th>字段</th></tr>
+    <tr><td>Customer 客户</td><td>Id, CustomerName, Phone, Status</td></tr>
+    <tr><td>Orders 订单</td><td>Id, CustomerId, OrderNo, Amount, OrderDate, Status</td></tr>
+    <tr><td>OrderDetail 订单明细</td><td>Id, OrderId, ProductId, Qty, Price, Amount</td></tr>
+    <tr><td>Product 产品</td><td>Id, ProductName, Category, Price, Stock</td></tr>
+    <tr><td>BillMaster 单据主表</td><td>Id, BillNo, BillType, BillDate, CustomerName, TotalAmount</td></tr>
+    <tr><td>BillDetail 单据明细</td><td>Id, BillId, LineNo, ProductName, Qty, Amount</td></tr>
+  </table>
+
+  <p class="q"><strong>1.（10 分）</strong>查询 2026 年 11 月 1 日之后、金额大于 2000 的订单号与金额，按金额从高到低。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>SELECT OrderNo, Amount
+FROM Orders
+WHERE OrderDate &gt;= '2026-11-01' AND Amount &gt; 2000
+ORDER BY Amount DESC;</code></pre>
+  <p class="small">判分：日期条件 4 分、金额条件 3 分、排序 3 分。</p></details>
+
+  <p class="q"><strong>2.（12 分）</strong>查询每个客户的名字和订单数，<strong>没下过单的客户也要显示 0</strong>。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>SELECT c.CustomerName, COUNT(o.Id) AS 订单数
+FROM Customer c
+LEFT JOIN Orders o ON o.CustomerId = c.Id
+GROUP BY c.CustomerName;</code></pre>
+  <p class="small">判分：LEFT JOIN 6 分、COUNT(o.Id) 3 分、GROUP BY 3 分。</p></details>
+
+  <p class="q"><strong>3.（12 分）</strong>统计 2026 年每个客户的总金额，只保留超过 1 万的，按总金额倒序。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>SELECT c.CustomerName, SUM(o.Amount) AS 总金额
+FROM Orders o
+JOIN Customer c ON c.Id = o.CustomerId
+WHERE o.OrderDate &gt;= '2026-01-01' AND o.OrderDate &lt; '2027-01-01'
+GROUP BY c.CustomerName
+HAVING SUM(o.Amount) &gt; 10000
+ORDER BY SUM(o.Amount) DESC;</code></pre>
+  <p class="small">判分：分组 4 分、WHERE 时间 3 分、HAVING 3 分、排序 2 分。</p></details>
+
+  <p class="q"><strong>4.（12 分）</strong>查出每个客户金额最高的那一笔订单（客户名、订单号、金额）。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>SELECT t.CustomerName, t.OrderNo, t.Amount FROM (
+  SELECT c.CustomerName, o.OrderNo, o.Amount,
+         ROW_NUMBER() OVER (PARTITION BY o.CustomerId ORDER BY o.Amount DESC) AS rn
+  FROM Orders o JOIN Customer c ON c.Id = o.CustomerId
+) t
+WHERE t.rn = 1;</code></pre>
+  <p class="small">判分：窗口函数 6 分、外层筛选 4 分、关联 2 分。用子查询求 max 也行。</p></details>
+
+  <p class="q"><strong>5.（12 分）</strong>把「电子」分类的产品单价上调 5%，并更新修改时间。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>UPDATE Product
+SET Price = Price * 1.05, UpdateTime = GETDATE()
+WHERE Category = N'电子';</code></pre>
+  <p class="small">判分：SET 表达式 6 分、WHERE 条件 4 分、时间 2 分。</p></details>
+
+  <p class="q"><strong>6.（12 分）</strong>用明细表把每张单据的商品名拼成一行（逗号分隔）。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>SELECT m.BillNo,
+       STUFF((SELECT ',' + d.ProductName
+              FROM BillDetail d
+              WHERE d.BillId = m.Id
+              ORDER BY d.LineNo
+              FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, '') AS 商品清单
+FROM BillMaster m;</code></pre>
+  <p class="small">判分：子查询关联 5 分、STUFF/FOR XML 结构 5 分、去掉首个逗号 2 分。</p></details>
+
+  <p class="q"><strong>7.（15 分）</strong>查询所有出库单（含无明细的）的单号、日期、客户、明细行号、商品、数量。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>SELECT m.BillNo, m.BillDate, m.CustomerName,
+       d.LineNo, d.ProductName, d.Qty
+FROM BillMaster m
+LEFT JOIN BillDetail d ON d.BillId = m.Id
+WHERE m.BillType = N'出库'
+ORDER BY m.BillNo, d.LineNo;</code></pre>
+  <p class="small">判分：LEFT JOIN 8 分（写成 INNER 只给 2 分）、类型条件 4 分、排序 3 分。</p></details>
+
+  <p class="q"><strong>8.（15 分）</strong>写一个转账事务：账户 1 扣 100 给账户 2，要求要么都成功要么都不生效。</p>
+  <details><summary>答案 + 判分点</summary>
+<pre><code>BEGIN TRAN;
+UPDATE Account SET Balance = Balance - 100 WHERE Id = 1;
+UPDATE Account SET Balance = Balance + 100 WHERE Id = 2;
+COMMIT TRAN;</code></pre>
+  <p class="small">判分：BEGIN/COMMIT 6 分、两条更新各 3 分、能说明异常时 ROLLBACK 3 分。</p></details>
+
+  <div class="box ok" style="margin-top:22px">
+    <b>及格线 60 分</b>
+    第 2、3、7 题是「LEFT JOIN + 分组 + 条件位置」，这三题拿满就 39 分；再加第 1、5 题（送分）就到 61。<strong>先把这五题练到闭眼能写。</strong>
+  </div>
+</section>
+
+<div class="pager">
+  <button id="prev">← 上一课</button>
+  <button id="next" class="primary">下一课 →</button>
+</div>
+<p class="small" style="text-align:center;margin-top:18px">
+  <a href="study.html" style="color:var(--accent)">打开速查表（考试前 10 分钟看）</a>
+</p>
+
+<script>
+(function(){
+  var sections = Array.prototype.slice.call(document.querySelectorAll('section'));
+  var nav = document.getElementById('nav');
+  var bar = document.getElementById('bar');
+  var progress = document.getElementById('progress');
+  var visited = {};
+  try { visited = JSON.parse(localStorage.getItem('sqlcourse') || '{}'); } catch(e) { visited = {}; }
+  var current = 0;
+
+  sections.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.textContent = s.dataset.title;
+    b.addEventListener('click', function(){ go(i); });
+    nav.appendChild(b);
+  });
+
+  function render(){
+    sections.forEach(function(s, i){ s.classList.toggle('on', i === current); });
+    Array.prototype.forEach.call(nav.children, function(b, i){
+      b.classList.toggle('on', i === current);
+      b.classList.toggle('done', !!visited[sections[i].id] && i !== current);
+    });
+    visited[sections[current].id] = 1;
+    try { localStorage.setItem('sqlcourse', JSON.stringify(visited)); } catch(e) {}
+    var done = Object.keys(visited).length;
+    progress.textContent = done + ' / ' + sections.length;
+    bar.style.width = (done / sections.length * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (location.hash !== '#' + sections[current].id) {
+      history.replaceState(null, '', '#' + sections[current].id);
+    }
+  }
+
+  function go(i){
+    current = Math.max(0, Math.min(sections.length - 1, i));
+    render();
+  }
+
+  document.getElementById('prev').addEventListener('click', function(){ go(current - 1); });
+  document.getElementById('next').addEventListener('click', function(){ go(current + 1); });
+
+  var start = sections.findIndex(function(s){ return '#' + s.id === location.hash; });
+  current = start === -1 ? 0 : start;
+  render();
+})();
+</script>
+</div>
+</body>
+</html>
